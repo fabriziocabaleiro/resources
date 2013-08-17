@@ -32,6 +32,7 @@ typedef struct postdata
     char str_lower[POST_SIZE];
     int  upper;
     char str_upper[POST_SIZE];
+    char str_res[POST_SIZE];
 }pd;
 
 void css()
@@ -72,34 +73,57 @@ void images(ri *res)
     printf("\t</table>\n");
 }
 
-void menu(pd *post)
+void menu(ri *res, pd *post)
 {
+    ri *it;
     printf("\t\t<form method='POST' action=''>\n"
            "\t\t\t<table class='menutable'>\n"
            "\t\t\t\t<tr>\n");
-    printf("\t\t\t\t\t<td>Start [dd/mm/yy [hh:mm]]:<input type='text' "
+    printf("\t\t\t\t\t<td>Start [dd/mm/yy [hh:mm]]<input type='text' "
             "name='start' value='%s' maxlength='16' size='16' /></td>\n", 
             *post->str_start == '\0'? "": post->str_start);
-    printf("\t\t\t\t\t<td>End [dd/mm/yy [hh:mm]] :<input type='text' name='end'"
+    printf("\t\t\t\t\t<td>End [dd/mm/yy [hh:mm]]<input type='text' name='end'"
             " value='%s' maxlength='16' size='16' /></td>\n",
             *post->str_end == '\0'? "": post->str_end);
-    printf("\t\t\t\t\t<td>Lower :<input type='text' name='lower'"
+    printf("\t\t\t\t</tr>\n\t\t\t\t<tr>\n");
+    printf("\t\t\t\t\t<td>Resource<select name='res'>\n"
+            "\t\t\t\t\t\t<option value='all'>All</option>\n");
+    for(it = res; it != NULL; it = it->next)
+        printf("\t\t\t\t\t\t<option value='%s' %s>%s</option>\n",
+                it->gname, !strcmp(it->gname, post->str_res)? "SELECTED": "", it->label);
+    printf("\t\t\t\t\t</select></td>\n");
+    printf("\t\t\t\t\t<td>Lower<input type='text' name='lower'"
             " value='%s' maxlength='16' size='10' /></td>\n",
             *post->str_lower == '\0'? "": post->str_lower);
-    printf("\t\t\t\t\t<td>Upper :<input type='text' name='upper'"
+    printf("\t\t\t\t\t<td>Upper<input type='text' name='upper'"
             " value='%s' maxlength='16' size='10' /></td>\n",
             *post->str_upper == '\0'? "": post->str_upper);
-    printf("\t\t\t\t\t<td><input type='submit' value='Go' />\n");
+    printf("\t\t\t\t\t<td><input type='submit' value='Go' /></td>\n");
     printf("\t\t\t\t</tr>\n"
            "\t\t\t</table>\n"
            "\t\t</form>\n");
 }
 
+void image(ri *res, pd *post)
+{
+    for(; res != NULL; res = res->next)
+        if(!strcmp(res->gname, post->str_res))
+            break;
+    if(res == NULL)
+        return;
+    printf("\t\t<div style='width: 100%%; text-align:center;'>\n");
+    printf("\t\t\t<img src='/png/%s.png' style='margin: auto' />\n", res->gname);
+    printf("\t\t</div>\n");
+}
+
 void body(ri *res, pd *post)
 {
     printf("\t<body>\n");
-    menu(post);
-    images(res);
+    menu(res, post);
+    if(!strcmp(post->str_res, "all"))
+        images(res);
+    else
+        image(res, post);
     printf("\t</body>\n");
 }
 
@@ -183,6 +207,8 @@ void get_post(pd *post)
             sscanf(val, "%d", &post->upper);
             sprintf(post->str_upper, "%d", post->upper);
         }
+        else if(!strcmp(var, "res"))
+            strcpy(post->str_res, val);
     }
 }
 
@@ -190,6 +216,7 @@ int main(int argc, char** argv)
 {
     ri *res;
     pd post = {.start = -3600, .end = -30};
+    *post.str_res   = '\0';
     *post.str_start = '\0';
     *post.str_end   = '\0';
     *post.str_lower = '\0';
@@ -219,7 +246,8 @@ int main(int argc, char** argv)
             strcat(lim, post.str_upper);
         }
     }
-    snprintf(cmd, 200, "./resources -g -r '-s %d -e %d %s' > /dev/null", post.start, post.end, lim);
+    snprintf(cmd, 200, "./resources -g %s -r '-s %d -e %d %s' > /dev/null", 
+            post.str_res, post.start, post.end, lim);
     system(cmd);
     html(res, &post);
     return (EXIT_SUCCESS);

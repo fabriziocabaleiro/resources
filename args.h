@@ -14,12 +14,13 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-typedef struct arguments
+typedef struct arguments /** @struct arguments  */
 {
-    int collect;
-    int graph;
-    int test;
-    char *rrdopt;
+    int collect;         /**< Collect data      */
+    int graph;           /**< Graph data        */
+    char *res;           /**< Resource to graph */
+    int test;            /**< Run test mode     */
+    char *rrdopt;        /**< Additional options for the rrdtool command */
 }argts;
 
 void init_args(argts *arg);

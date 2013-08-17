@@ -23,6 +23,7 @@ int get_args(int argc, char **argv, argts *arg)
         else if(!strcmp(*(argv + i), "-g"))
         {
             arg->graph = 1;
+            arg->res = *(argv + i + 1);
             ret++;
         }
         else if(!strcmp(*(argv + i), "-t"))

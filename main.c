@@ -100,8 +100,22 @@ int collector(ri *head)
 
 int graph(ri *head, argts *arg)
 {
-    for(;head != NULL; head = head->next)
-        rrd_graph(head, arg);
+    if(arg->res == NULL || !strcmp(arg->res, "all"))
+    {
+        for(;head != NULL; head = head->next)
+            rrd_graph(head, arg);
+    }
+    else
+    {
+        for(;head != NULL; head = head->next)
+        {
+            if(!strcmp(head->gname, arg->res))
+            {
+                rrd_graph(head, arg);
+                break;
+            }
+        }
+    }
     return 0;
 }
 
