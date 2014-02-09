@@ -62,7 +62,7 @@ int cmd_common(ri *node, char *cmd)
     int ret = 0;
     if((node->pf = popen(cmd, "r")) == NULL)
     {
-        logmsg(node->gc->log, "Error cmd_common %s: %s", node->label, strerror(errno));
+        log_write_msg(node->gc->log, "Error cmd_common %s: %s", node->label, strerror(errno));
         ret = -1;
     }
     node->fd = fileno(node->pf);
@@ -80,7 +80,7 @@ int get_cpu(ri *node, char *data)
     float user, nice, system, iowait, steal, idle;
     if(fscanf(node->pf, "%f %f %f %f %f %f", &user, &nice, &system, &iowait, &steal, &idle) != 6)
     {
-        logmsg(node->gc->log, "Error get_cpu %s: %s", node->label, strerror(errno));
+        log_write_msg(node->gc->log, "Error get_cpu %s: %s", node->label, strerror(errno));
         ret = -1;
     }
     else
@@ -139,7 +139,7 @@ int get_net(ri *node, char *data)
     long long int in, out;
     if(fscanf(node->pf, "%Ld %Ld", &in, &out) != 2)
     {
-        logmsg(node->gc->log, "Error get_cpu %s: %s", node->label, strerror(errno));
+        log_write_msg(node->gc->log, "Error get_cpu %s: %s", node->label, strerror(errno));
         ret = -1;
     }
     else
@@ -161,7 +161,7 @@ int get_disk(ri *node, char *data)
     long long int total, used;
     if(fscanf(node->pf, "%*s %Ld %Ld", &total, &used) != 2)
     {
-        logmsg(node->gc->log, "Error get_cpu %s: %s", node->label, strerror(errno));
+        log_write_msg(node->gc->log, "Error get_cpu %s: %s", node->label, strerror(errno));
         ret = -1;
     }
     else
@@ -183,7 +183,7 @@ int get_uptime(ri *node, char *data)
     int users;
     if(fscanf(node->pf, "%d %f %f %f", &users, &l1, &l5, &l15) != 4)
     {
-        logmsg(node->gc->log, "Error get_cpu %s: %s", node->label, strerror(errno));
+        log_write_msg(node->gc->log, "Error get_cpu %s: %s", node->label, strerror(errno));
         ret = -1;
     }
     else
@@ -204,7 +204,7 @@ int get_mem(ri *node, char *data)
     int mtotal, mfree, buffer, cached;
     if(fscanf(node->pf, "%d %d %d %d", &mtotal, &mfree, &buffer, &cached) != 4)
     {
-        logmsg(node->gc->log, "Error get_cpu %s: %s", node->label, strerror(errno));
+        log_write_msg(node->gc->log, "Error get_cpu %s: %s", node->label, strerror(errno));
         ret = -1;
     }
     else
@@ -225,7 +225,7 @@ int get_swap(ri *node, char *data)
     int mtotal, mfree;
     if(fscanf(node->pf, "%d %d", &mtotal, &mfree) != 2)
     {
-        logmsg(node->gc->log, "Error get_cpu %s: %s", node->label, strerror(errno));
+        log_write_msg(node->gc->log, "Error get_cpu %s: %s", node->label, strerror(errno));
         ret = -1;
     }
     else
@@ -246,7 +246,7 @@ int get_all_users(ri *node, char *data)
     int ret = 0;
     if(fscanf(node->pf, "%d", &users) != 1)
     {
-        logmsg(node->gc->log, "Error get_all_users: %s", strerror(errno));
+        log_write_msg(node->gc->log, "Error get_all_users: %s", strerror(errno));
         ret = -1;
     }
     else
@@ -267,7 +267,7 @@ int get_current_users(ri *node, char *data)
     int ret = 0;
     if(fscanf(node->pf, "%d", &users) != 1)
     {
-        logmsg(node->gc->log, "Error get_current_users: %s", strerror(errno));
+        log_write_msg(node->gc->log, "Error get_current_users: %s", strerror(errno));
         ret = -1;
     }
     else

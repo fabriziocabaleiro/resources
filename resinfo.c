@@ -7,7 +7,7 @@
 
 #include "resinfo.h"
 
-ri* new_ri()
+ri* ri_new()
 {
     ri *new;
     new = (ri*)malloc(sizeof(ri));
@@ -23,7 +23,7 @@ ri* new_ri()
     return new;
 }
 
-void add_ri(ri **head, ri *new)
+void ri_add(ri **head, ri *new)
 {
     ri *it;
     if(*head == NULL)
@@ -37,7 +37,7 @@ void add_ri(ri **head, ri *new)
     }
 }
 
-void fill_ri(ri *node, char *line)
+void ri_fill(ri *node, char *line)
 {
     char var[40], val[160];
     char *buf;
@@ -61,23 +61,23 @@ void fill_ri(ri *node, char *line)
     }
 }
 
-void free_ri(ri *node)
+void ri_free(ri *node)
 {
     if(node == NULL)
         return;
-    free_ri(node->next);
+    ri_free(node->next);
     if(node->type != NULL)
         free(node->type);
     free(node);
 }
 
-void print_ri(ri *node)
+void ri_print(ri *node)
 {
     char sfmt[] = "%-12s%s\n";
     char xfmt[] = "%-12s%x\n";
     if(node == NULL)
         return;
-    print_ri(node->next);
+    ri_print(node->next);
     printf("\n");
     printf(sfmt, "type", node->type);
     printf(sfmt, "label", node->label);
@@ -87,7 +87,7 @@ void print_ri(ri *node)
     printf(xfmt, "get_data", node->get_data);
 }
 
-gconf* new_gconf()
+gconf* gconf_new()
 {
     gconf *new;
     new = (gconf*)malloc(sizeof(gconf));
@@ -96,7 +96,7 @@ gconf* new_gconf()
     return new;
 }
 
-void fill_gconf(gconf *gc, char *line)
+void gconf_fill(gconf *gc, char *line)
 {
     char var[40], val[160];
     char *buf;
@@ -113,7 +113,7 @@ void fill_gconf(gconf *gc, char *line)
         free(buf);
 }
 
-void print_gconf(gconf *gc)
+void gconf_print(gconf *gc)
 {
     char sfmt[] = "%-6s%s\n";
     printf(sfmt, "rpath", gc->rpath);

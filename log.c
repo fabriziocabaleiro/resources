@@ -1,6 +1,6 @@
 #include "log.h"
 
-void logtime(FILE *pf)
+static void log_write_time(FILE *pf)
 {
     char buf[30];
     time_t t = time(NULL);
@@ -8,14 +8,14 @@ void logtime(FILE *pf)
     fprintf(pf, "%s: ", buf);
 }
 
-void logmsg(char *file, char *fmt, ...)
+void log_write_msg(char *file, char *fmt, ...)
 {
     FILE *pf;
     va_list arg;
     va_start(arg, fmt);
     if((pf = fopen(file, "a")) == NULL)
         return;
-    logtime(pf);
+    log_write_time(pf);
     vfprintf(pf, fmt, arg);
     fprintf(pf, "\n");
     fclose(pf);

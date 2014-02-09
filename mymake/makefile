@@ -1,4 +1,4 @@
-OBJ = main.o resinfo.o conffile.o resfunctions.o rrdtool.o args.o log.o
+OBJ = main.o resinfo.o conffile.o resfunctions.o rrdtool.o args.o log.o mainfunc.o
 WOBJ = resweb.o resinfo.o conffile.o log.o
 CC  = gcc
 FLAGS = -Wall -g
@@ -15,7 +15,10 @@ resweb: $(WOBJ)
 resweb.o: ../resweb.c ../resinfo.h ../conffile.h ../log.h
 	$(CC) $(CFLAGS) $< -o $@
 
-main.o: ../main.c ../rrdtool.h ../resinfo.h ../conffile.h ../resfunctions.h ../args.h ../log.h
+main.o: ../main.c ../resinfo.h ../conffile.h ../args.h ../log.h ../mainfunc.h
+	$(CC) $(CFLAGS) $< -o $@
+
+mainfunc.o: ../mainfunc.c ../rrdtool.h ../resinfo.h ../conffile.h ../resfunctions.h ../args.h ../log.h 
 	$(CC) $(CFLAGS) $< -o $@
 
 resinfo.o: ../resinfo.c ../resinfo.h 

@@ -21,7 +21,7 @@ ri* read_conf_file(char *cfn)
     
     head = NULL;
     buf  = NULL;
-    gc   = new_gconf();
+    gc   = gconf_new();
     
     if(cfn == NULL)
     {
@@ -46,19 +46,19 @@ ri* read_conf_file(char *cfn)
             if(tp == RESOURCE)
             {
                 if(buf != NULL)
-                    add_ri(&head, buf);
-                buf = new_ri();
+                    ri_add(&head, buf);
+                buf = ri_new();
                 sscanf(line, "[%30[^]]]", type);
                 buf->type = (char*)malloc((1 + strlen(type)) * sizeof(char));
                 strcpy(buf->type, type);
             }
         }
         else if(tp == RESOURCE)
-            fill_ri(buf, line);
+            ri_fill(buf, line);
         else if(tp == CONFIGURATION)
-            fill_gconf(gc, line);
+            gconf_fill(gc, line);
     }
-    add_ri(&head, buf);
+    ri_add(&head, buf);
     for(buf = head; buf != NULL; buf = buf->next)
         buf->gc = gc;
     return head;

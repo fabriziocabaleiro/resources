@@ -75,7 +75,7 @@ void rrd_create(ri *node)
     }
     else
     {
-        logmsg(node->gc->log, "Error rrd_create %s: %s", node->label, strerror(errno));
+        log_write_msg(node->gc->log, "Error rrd_create %s: %s", node->label, strerror(errno));
         return;
     }
     snprintf(cmd3, 100, 
@@ -87,7 +87,7 @@ void rrd_create(ri *node)
     system(cmd);
 }
 
-void rrd_graph(ri *node, const argts *arg)
+void rrd_graph(ri *node, const args *arg)
 {
     char cmd[900];
     char cmd2[700];
@@ -178,7 +178,7 @@ void rrd_graph(ri *node, const argts *arg)
     }
     else
     {
-        logmsg(node->gc->log, "Error trying to graph type %s that didn't match any", node->type);
+        log_write_msg(node->gc->log, "Error trying to graph type %s that didn't match any", node->type);
         return;
     }
     snprintf(cmd, 900, "rrdtool graph %s/%s.png -l 0 -t '%s' -s -3600 -e -30 "
@@ -193,6 +193,6 @@ void rrd_update(ri *node, char *data)
     if(!rrd_exits(node))
         rrd_create(node);
     snprintf(cmd, 300, "rrdtool update %s/%s.rrd N%s", node->gc->rpath, node->rname, data);
-    logmsg(node->gc->log, "%s", cmd);
+    log_write_msg(node->gc->log, "%s", cmd);
     system(cmd);
 }

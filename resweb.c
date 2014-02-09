@@ -35,7 +35,7 @@ typedef struct postdata
     char str_res[POST_SIZE];
 }pd;
 
-void css()
+void rw_css()
 {
     printf("\t\t<style type='text/css'>\n");
     printf(
@@ -47,15 +47,15 @@ void css()
     printf("\t\t</style>\n");
 }
 
-void head()
+void rw_head()
 {
     printf("\t<head>\n");
-    css();
+    rw_css();
     printf("\t\t<title>PlaceTribe's resources</title>\n");
     printf("\t</head>\n");
 }
 
-void images(ri *res)
+void rw_images(ri *res)
 {
     int tr = 0;
     printf("\t<table class='imgtable'>\n");
@@ -73,7 +73,7 @@ void images(ri *res)
     printf("\t</table>\n");
 }
 
-void menu(ri *res, pd *post)
+void rw_menu(ri *res, pd *post)
 {
     ri *it;
     printf("\t\t<form method='POST' action=''>\n"
@@ -104,7 +104,7 @@ void menu(ri *res, pd *post)
            "\t\t</form>\n");
 }
 
-void image(ri *res, pd *post)
+void rw_image(ri *res, pd *post)
 {
     for(; res != NULL; res = res->next)
         if(!strcmp(res->gname, post->str_res))
@@ -116,26 +116,26 @@ void image(ri *res, pd *post)
     printf("\t\t</div>\n");
 }
 
-void body(ri *res, pd *post)
+void rw_body(ri *res, pd *post)
 {
     printf("\t<body>\n");
-    menu(res, post);
+    rw_menu(res, post);
     if(!strcmp(post->str_res, "all"))
-        images(res);
+        rw_images(res);
     else
-        image(res, post);
+        rw_image(res, post);
     printf("\t</body>\n");
 }
 
-void html(ri *res, pd *post)
+void rw_html(ri *res, pd *post)
 {
     printf("<html>\n");
-    head();
-    body(res, post);
+    rw_head();
+    rw_body(res, post);
     printf("</html>\n");
 }
 
-int get_epoch(char *s)
+int rw_get_epoch(char *s)
 {
     struct tm t;
     t.tm_hour = t.tm_min = 0;
@@ -148,14 +148,14 @@ int get_epoch(char *s)
     return (int)(mktime(&t) - time(NULL));
 }
 
-char get_hexa(char *s)
+char rw_get_hexa(char *s)
 {
     unsigned int x;
     sscanf(s, "%2x", &x);
     return (char)x;
 }
 
-void decode(char *s)
+void rw_decode(char *s)
 {
     char buf[POST_SIZE];
     int i, j;
@@ -167,7 +167,7 @@ void decode(char *s)
             *(buf + j++) = *(s + i);
         else
         {
-            *(buf + j++) = get_hexa(s + i + 1);
+            *(buf + j++) = rw_get_hexa(s + i + 1);
             i += 2;
         }
     }
@@ -175,7 +175,7 @@ void decode(char *s)
     strncpy(s, buf, POST_SIZE);
 }
 
-void get_post(pd *post)
+void rw_get_post(pd *post)
 {
     char var[POST_SIZE], val[POST_SIZE];
     char buf[2 * POST_SIZE + 1];
@@ -186,15 +186,15 @@ void get_post(pd *post)
             break;
         if(sscanf(buf, "%50[^=\n]=%50[^&\n]&", var, val) != 2)
             continue;
-        decode(val);
-        if(!strcmp(var, "start") && get_epoch(val) != -1)
+        rw_decode(val);
+        if(!strcmp(var, "start") && rw_get_epoch(val) != -1)
         {
-            post->start = get_epoch(val);
+            post->start = rw_get_epoch(val);
             strcpy(post->str_start, val);
         }
-        else if(!strcmp(var, "end") && get_epoch(val) != -1)
+        else if(!strcmp(var, "end") && rw_get_epoch(val) != -1)
         {
-            post->end = get_epoch(val);
+            post->end = rw_get_epoch(val);
             strcpy(post->str_end, val);
         }
         else if(!strcmp(var, "lower"))
@@ -231,7 +231,7 @@ int main(int argc, char** argv)
     
     cl = getenv("CONTENT_LENGTH");
     if(cl != NULL && *cl != '0')
-        get_post(&post);
+        rw_get_post(&post);
     if(*post.str_lower != '\0' || *post.str_upper != '\0')
     {
         strcpy(lim, "-r");
@@ -249,7 +249,7 @@ int main(int argc, char** argv)
     snprintf(cmd, 200, "./resources -g %s -r '-s %d -e %d %s' > /dev/null", 
             post.str_res, post.start, post.end, lim);
     system(cmd);
-    html(res, &post);
+    rw_html(res, &post);
     return (EXIT_SUCCESS);
 }
 

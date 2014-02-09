@@ -1,8 +1,8 @@
-/* 
- * File:   log.h
- * Author: fabrizio
- *
- * Created on July 25, 2013, 11:15 AM
+/** 
+ * \file   log.h
+ * \author fabrizio
+ * \brief  Functionality to log information to a file
+ * \date July 25, 2013, 11:15 AM
  */
 
 #ifndef LOG_H
@@ -22,7 +22,7 @@
  * @param fmt  Format with text and variables.
  * @param ...  Variable amount of arguments.
  */
-void logmsg(char *file, char *fmt, ...);
+void log_write_msg(char *file, char *fmt, ...);
 
 #endif	/* LOG_H */
 
