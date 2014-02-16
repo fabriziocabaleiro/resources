@@ -19,6 +19,8 @@ int main(int argc, char** argv)
     head = read_conf_file("config.conf");
     assign_func(head);
     
+    if(arg.daemon && mf_daemonize())
+        return EXIT_FAILURE;
     if(arg.test)
     {
         args_print(&arg);
@@ -32,6 +34,7 @@ int main(int argc, char** argv)
     if(arg.collect)
         mf_collector(head);
     ri_free(head);
+    printf("Thanks for using resources\n");
     return (EXIT_SUCCESS);
 }
 

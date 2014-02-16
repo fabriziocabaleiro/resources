@@ -63,6 +63,12 @@ void rrd_create(ri *node)
                 "DS:total:GAUGE:60:0:U "
                 "DS:free:GAUGE:60:0:U ");
     }
+    else if(!strcmp(node->type, "ps"))
+    {
+        snprintf(cmd2, 200,
+                "DS:cpu:GAUGE:60:0:100 "
+                "DS:mem:GAUGE:60:0:100 ");
+    }
     else if(!strcmp(node->type, "all_users"))
     {
         snprintf(cmd2, 200,
@@ -163,6 +169,14 @@ void rrd_graph(ri *node, const args *arg)
                 "CDEF:free2=free,1024,* "
                 "AREA:used#00ff00:'Used' "
                 "STACK:free2#0000ff:'Free' ", node->gc->rpath, node->rname);
+    }
+    else if(!strcmp(node->type, "ps"))
+    {
+        snprintf(cmd2, 700,
+                "DEF:cpu=%1$s/%2$s.rrd:cpu:AVERAGE "
+                "DEF:mem=%1$s/%2$s.rrd:mem:AVERAGE "
+                "LINE2:cpu#ff0000:'CPU %%' "
+                "LINE2:mem#00ffff:'RAM %%' ", node->gc->rpath, node->rname);
     }
     else if(!strcmp(node->type, "all_users"))
     {

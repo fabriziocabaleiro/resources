@@ -6,6 +6,7 @@ void args_init(args *arg)
     arg->graph   = 0;
     arg->test    = 0;
     arg->version = 0;
+    arg->daemon  = 0;
     arg->rrdopt  = NULL;
 }
 
@@ -32,6 +33,11 @@ int args_get(int argc, char **argv, args *arg)
             arg->test = 1;
             ret++;
         }
+        else if(!strcmp(*(argv + i), "-d") || !strcmp(*(argv + i), "--daemon"))
+        {
+            arg->daemon = 1;
+            ret++;
+        }
         else if(!strcmp(*(argv + i), "-r") || !strcmp(*(argv + i), "--rrdopt"))
         {
             arg->rrdopt = *(argv + i + 1);
@@ -50,4 +56,5 @@ void args_print(args *arg)
     printf(dfmt, "graph", arg->graph);
     printf(dfmt, "test", arg->test);
     printf(dfmt, "version", arg->version);
+    printf(dfmt, "daemon", arg->daemon);
 }

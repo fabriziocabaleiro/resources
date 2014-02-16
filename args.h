@@ -34,6 +34,7 @@ typedef struct argument_struct
                                  just graph the rrd data and finish */
     unsigned int version:1; /**< Tell the program to print the current version
                                  and then exit */
+    unsigned int daemon:1;  /**< Run the program in daemon mode */
     char *res;     /**< The type of resources to graph in GRAPH mode  */
     char *rrdopt;  /**< Additional options for the rrdtool command */
 }args;

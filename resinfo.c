@@ -16,7 +16,7 @@ ri* ri_new()
     new->dev  = NULL;
     new->gname= NULL;
     new->rname= NULL;
-    new->done = '\0';
+    new->done = -1;
     new->next = NULL;
     new->exec_cmd = NULL;
     new->get_data = NULL;
@@ -54,6 +54,8 @@ void ri_fill(ri *node, char *line)
         node->label = buf;
     else if(!strcmp(var, "dev"))
         node->dev = buf;
+    else if(!strcmp(var, "cmd"))
+        node->command = buf;
     else
     {
         printf("free %s %s\n", var, buf);

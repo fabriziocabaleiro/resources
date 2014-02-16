@@ -1,53 +1,61 @@
 #include "resfunctions.h"
 
-void assign_func(ri *head)
-{
-    for(; head != NULL; head = head->next)
-    {
-        if(!strcmp(head->type, "cpu"))
-        {
-            head->exec_cmd = cmd_cpu;
-            head->get_data = get_cpu;
-        }
-        else if(!strcmp(head->type, "net"))
-        {
-            head->exec_cmd = cmd_net;
-            head->get_data = get_net;
-        }
-        else if(!strcmp(head->type, "disk"))
-        {
-            head->exec_cmd = cmd_disk;
-            head->get_data = get_disk;
-        }
-        else if(!strcmp(head->type, "uptime"))
-        {
-            head->exec_cmd = cmd_uptime;
-            head->get_data = get_uptime;
-        }
-        else if(!strcmp(head->type, "mem"))
-        {
-            head->exec_cmd = cmd_mem;
-            head->get_data = get_mem;
-        }
-        else if(!strcmp(head->type, "swap"))
-        {
-            head->exec_cmd = cmd_swap;
-            head->get_data = get_swap;
-        }
-        else if(!strcmp(head->type, "all_users"))
-        {
-            head->exec_cmd = cmd_all_users;
-            head->get_data = get_all_users;
-        }
-        else if(!strcmp(head->type, "current_users"))
-        {
-            head->exec_cmd = cmd_current_users;
-            head->get_data = get_current_users;
-        }
-        else
-            printf("No function assigned to %s", head->label);
-    }
-}
+/* Common execution of command with popen */
+static int rf_cmd_common(ri *node, char *cmd);
+
+/* CPU command */
+static int rf_cmd_cpu(ri *node);
+
+/* CPU data collector */
+static int rf_get_cpu(ri *node, char *data);
+
+/* Net command */
+static int rf_cmd_net(ri *node);
+
+/* Net data collector */
+static int rf_get_net(ri *node, char *data);
+
+/* Disk command */
+static int rf_cmd_disk(ri *node);
+
+/* Disk data collector */
+static int rf_get_disk(ri *node, char *data);
+
+/* Uptime command */
+static int rf_cmd_uptime(ri *node);
+
+/* Uptime data collector */
+static int rf_get_uptime(ri *node, char *data);
+
+/* Memory command */
+static int rf_cmd_mem(ri *node);
+
+/* Memory data collector */
+static int rf_get_mem(ri *node, char *data);
+
+/* Swap command */
+static int rf_cmd_swap(ri *node);
+
+/* Swap data collector */
+static int rf_get_swap(ri *node, char *data);
+
+/* All users command */
+static int rf_cmd_all_users(ri *node);
+
+/* All users data collector */
+static int rf_get_all_users(ri *node, char *data);
+
+/* Current users command */
+static int rf_cmd_current_users(ri *node);
+
+/* Current users data collector */
+static int rf_get_current_users(ri *node, char *data);
+
+/* PS command */
+static int rf_cmd_ps_of_command(ri *node);
+
+/* PS data collector */
+static int rf_get_ps_of_command(ri *node, char *data);
 
 int ri_done(ri *head)
 {
@@ -57,30 +65,114 @@ int ri_done(ri *head)
     return 1;
 }
 
-int cmd_common(ri *node, char *cmd)
+void assign_func(ri *head)
+{
+    for(; head != NULL; head = head->next)
+    {
+        if(!strcmp(head->type, "cpu"))
+        {
+            head->exec_cmd = rf_cmd_cpu;
+            head->get_data = rf_get_cpu;
+        }
+        else if(!strcmp(head->type, "net"))
+        {
+            head->exec_cmd = rf_cmd_net;
+            head->get_data = rf_get_net;
+        }
+        else if(!strcmp(head->type, "disk"))
+        {
+            head->exec_cmd = rf_cmd_disk;
+            head->get_data = rf_get_disk;
+        }
+        else if(!strcmp(head->type, "uptime"))
+        {
+            head->exec_cmd = rf_cmd_uptime;
+            head->get_data = rf_get_uptime;
+        }
+        else if(!strcmp(head->type, "mem"))
+        {
+            head->exec_cmd = rf_cmd_mem;
+            head->get_data = rf_get_mem;
+        }
+        else if(!strcmp(head->type, "swap"))
+        {
+            head->exec_cmd = rf_cmd_swap;
+            head->get_data = rf_get_swap;
+        }
+        else if(!strcmp(head->type, "all_users"))
+        {
+            head->exec_cmd = rf_cmd_all_users;
+            head->get_data = rf_get_all_users;
+        }
+        else if(!strcmp(head->type, "current_users"))
+        {
+            head->exec_cmd = rf_cmd_current_users;
+            head->get_data = rf_get_current_users;
+        }
+        else if(!strcmp(head->type, "ps"))
+        {
+            head->exec_cmd = rf_cmd_ps_of_command;
+            head->get_data = rf_get_ps_of_command;
+        }
+
+        else
+            printf("No function assigned to %s", head->label);
+    }
+}
+
+static int rf_cmd_common(ri *node, char *cmd)
 {
     int ret = 0;
     if((node->pf = popen(cmd, "r")) == NULL)
     {
-        log_write_msg(node->gc->log, "Error cmd_common %s: %s", node->label, strerror(errno));
+        log_write_msg(node->gc->log, "Error rf_cmd_common %s: %s", node->label,
+                      strerror(errno));
         ret = -1;
     }
     node->fd = fileno(node->pf);
     return ret;
 }
 
-int cmd_cpu(ri *node)
+static int rf_get_common(char *data, char *fmt, int values, ri *node)
 {
-    return cmd_common(node, "iostat -c 1 2|grep -v ^$|tail -n1");
+    va_list va;  /* variable argument */
+    int ret = 0; /* return value */
+    int vfr;     /* vfscanf return */
+    errno = 0;
+    vfr = vfscanf(node->pf, fmt, va);
+    if(errno != 0)
+    {
+        log_write_msg(node->gc->log, "%s, resources type %s with label %s had "
+                      "an error: %s", __func__, node->type, node->label, 
+                      strerror(errno));
+        ret = -1;
+    }
+    else if(vfr == values)
+    {
+        vsnprintf(data, 40, fmt, va);
+    }
+    else
+    {
+        log_write_msg(node->gc->log, "%s, reading %s couldn't read %d values",
+                      __func__, node->label, values);
+        ret = -1;
+    }
+    pclose(node->pf);
+    return ret;
 }
 
-int get_cpu(ri *node, char *data)
+static int rf_cmd_cpu(ri *node)
+{
+    return rf_cmd_common(node, "iostat -c 1 2|grep -v ^$|tail -n1");
+}
+
+static int rf_get_cpu(ri *node, char *data)
 {
     int ret = 0;
     float user, nice, system, iowait, steal, idle;
     if(fscanf(node->pf, "%f %f %f %f %f %f", &user, &nice, &system, &iowait, &steal, &idle) != 6)
     {
-        log_write_msg(node->gc->log, "Error get_cpu %s: %s", node->label, strerror(errno));
+        log_write_msg(node->gc->log, "Error rf_get_cpu %s: %s", node->label, strerror(errno));
         ret = -1;
     }
     else
@@ -89,7 +181,7 @@ int get_cpu(ri *node, char *data)
     return ret;
 }
 
-int cmd_net(ri *node)
+static int rf_cmd_net(ri *node)
 {
     int fd[2];
     FILE *pf;
@@ -99,30 +191,30 @@ int cmd_net(ri *node)
     snprintf(fname, 45, "/sys/class/net/%s/statistics/rx_bytes", node->dev);
     if((pf = fopen(fname, "r")) == NULL)
     {
-        printf("cmd_net fopen in error: %s\n", strerror(errno));
+        printf("rf_cmd_net fopen in error: %s\n", strerror(errno));
         return -1;
     }
     if(fscanf(pf, "%Ld", &in) != 1)
     {
-        printf("cmd_net fscanf in error: %s\n", strerror(errno));
+        printf("rf_cmd_net fscanf in error: %s\n", strerror(errno));
         return -1;
     }
     fclose(pf);
     snprintf(fname, 45, "/sys/class/net/%s/statistics/tx_bytes", node->dev);
     if((pf = fopen(fname, "r")) == NULL)
     {
-        printf("cmd_net fopen out error: %s\n", strerror(errno));
+        printf("rf_cmd_net fopen out error: %s\n", strerror(errno));
         return -1;
     }
     if(fscanf(pf, "%Ld", &out) != 1)
     {
-        printf("cmd_net fscanf out error: %s\n", strerror(errno));
+        printf("rf_cmd_net fscanf out error: %s\n", strerror(errno));
         return -1;
     }
     fclose(pf);
     if(pipe(fd) != 0)
     {
-        printf("cmd_net pipe error: %s\n", strerror(errno));
+        printf("rf_cmd_net pipe error: %s\n", strerror(errno));
         return -1;
     }
     snprintf(data, 30, "%Ld %Ld", in, out);
@@ -133,13 +225,13 @@ int cmd_net(ri *node)
     return 0;
 }
 
-int get_net(ri *node, char *data)
+static int rf_get_net(ri *node, char *data)
 {
     int ret = 0;
     long long int in, out;
     if(fscanf(node->pf, "%Ld %Ld", &in, &out) != 2)
     {
-        log_write_msg(node->gc->log, "Error get_cpu %s: %s", node->label, strerror(errno));
+        log_write_msg(node->gc->log, "Error rf_get_cpu %s: %s", node->label, strerror(errno));
         ret = -1;
     }
     else
@@ -148,20 +240,20 @@ int get_net(ri *node, char *data)
     return ret;
 }
 
-int cmd_disk(ri *node)
+static int rf_cmd_disk(ri *node)
 {
     char cmd[40];
     snprintf(cmd, 40, "df -P %s|tail -n1", node->fs);
-    return cmd_common(node, cmd);
+    return rf_cmd_common(node, cmd);
 }
 
-int get_disk(ri *node, char *data)
+static int rf_get_disk(ri *node, char *data)
 {
     int ret = 0;
     long long int total, used;
     if(fscanf(node->pf, "%*s %Ld %Ld", &total, &used) != 2)
     {
-        log_write_msg(node->gc->log, "Error get_cpu %s: %s", node->label, strerror(errno));
+        log_write_msg(node->gc->log, "Error rf_get_cpu %s: %s", node->label, strerror(errno));
         ret = -1;
     }
     else
@@ -170,20 +262,20 @@ int get_disk(ri *node, char *data)
     return ret;
 }
 
-int cmd_uptime(ri *node)
+static int rf_cmd_uptime(ri *node)
 {
     char cmd[] = "uptime|tr ',' ' '|awk '{for(i=1;i<=NF;i++)if($i ~ /user/)printf \"%d \",$(i-1);print $(NF-2)" "$(NF-1)" "$NF;}'";
-    return cmd_common(node, cmd);
+    return rf_cmd_common(node, cmd);
 }
 
-int get_uptime(ri *node, char *data)
+static int rf_get_uptime(ri *node, char *data)
 {
     int ret = 0;
     float l1, l5, l15;
     int users;
     if(fscanf(node->pf, "%d %f %f %f", &users, &l1, &l5, &l15) != 4)
     {
-        log_write_msg(node->gc->log, "Error get_cpu %s: %s", node->label, strerror(errno));
+        log_write_msg(node->gc->log, "Error rf_get_cpu %s: %s", node->label, strerror(errno));
         ret = -1;
     }
     else
@@ -192,19 +284,19 @@ int get_uptime(ri *node, char *data)
     return ret;
 }
 
-int cmd_mem(ri *node)
+static int rf_cmd_mem(ri *node)
 {
     char cmd[] = "grep /proc/meminfo -e MemTotal -e MemFree -e Buffers -e Cached|awk '{print $2}'";
-    return cmd_common(node, cmd);
+    return rf_cmd_common(node, cmd);
 }
 
-int get_mem(ri *node, char *data)
+static int rf_get_mem(ri *node, char *data)
 {
     int ret = 0;
     int mtotal, mfree, buffer, cached;
     if(fscanf(node->pf, "%d %d %d %d", &mtotal, &mfree, &buffer, &cached) != 4)
     {
-        log_write_msg(node->gc->log, "Error get_cpu %s: %s", node->label, strerror(errno));
+        log_write_msg(node->gc->log, "Error rf_get_cpu %s: %s", node->label, strerror(errno));
         ret = -1;
     }
     else
@@ -213,19 +305,19 @@ int get_mem(ri *node, char *data)
     return ret;
 }
 
-int cmd_swap(ri *node)
+static int rf_cmd_swap(ri *node)
 {
     char cmd[] = "grep /proc/meminfo -e SwapTotal -e SwapFree|awk '{print $2}'";
-    return cmd_common(node, cmd);
+    return rf_cmd_common(node, cmd);
 }
 
-int get_swap(ri *node, char *data)
+static int rf_get_swap(ri *node, char *data)
 {
     int ret = 0;
     int mtotal, mfree;
     if(fscanf(node->pf, "%d %d", &mtotal, &mfree) != 2)
     {
-        log_write_msg(node->gc->log, "Error get_cpu %s: %s", node->label, strerror(errno));
+        log_write_msg(node->gc->log, "Error rf_get_cpu %s: %s", node->label, strerror(errno));
         ret = -1;
     }
     else
@@ -234,19 +326,20 @@ int get_swap(ri *node, char *data)
     return ret;
 }
 
-int cmd_all_users(ri *node)
+static int rf_cmd_all_users(ri *node)
 {
     char cmd[] = "mysql -uroot -proot -s <<< 'SELECT COUNT(*) FROM placetribe.user_t'";
-    return cmd_common(node, cmd);
+    return rf_cmd_common(node, cmd);
 }
 
-int get_all_users(ri *node, char *data)
+static int rf_get_all_users(ri *node, char *data)
 {
     int users;
     int ret = 0;
     if(fscanf(node->pf, "%d", &users) != 1)
     {
-        log_write_msg(node->gc->log, "Error get_all_users: %s", strerror(errno));
+        log_write_msg(node->gc->log, "Error rf_get_all_users: %s", 
+                      strerror(errno));
         ret = -1;
     }
     else
@@ -255,19 +348,21 @@ int get_all_users(ri *node, char *data)
     return ret;
 }
 
-int cmd_current_users(ri *node)
+static int rf_cmd_current_users(ri *node)
 {
-    char cmd[] = "mysql -uroot -proot -s <<< 'SELECT COUNT(DISTINCT session_id) FROM placetribe.user_logged_t'";
-    return cmd_common(node, cmd);
+    char cmd[] = "mysql -uroot -proot -s <<< 'SELECT COUNT(DISTINCT session_id)"
+                 " FROM placetribe.user_logged_t'";
+    return rf_cmd_common(node, cmd);
 }
 
-int get_current_users(ri *node, char *data)
+static int rf_get_current_users(ri *node, char *data)
 {
     int users;
     int ret = 0;
     if(fscanf(node->pf, "%d", &users) != 1)
     {
-        log_write_msg(node->gc->log, "Error get_current_users: %s", strerror(errno));
+        log_write_msg(node->gc->log, "Error rf_get_current_users: %s", 
+                      strerror(errno));
         ret = -1;
     }
     else
@@ -275,3 +370,28 @@ int get_current_users(ri *node, char *data)
     pclose(node->pf);
     return ret;
 }
+
+static int rf_cmd_ps_of_command(ri *node)
+{
+    char cmd[200];
+    snprintf(cmd, 200, "ps h -o pcpu,pmem -C %s", node->command);
+    return rf_cmd_common(node, cmd);
+}
+
+static int rf_get_ps_of_command(ri *node, char *data)
+{
+    int ret = 0;
+    float cpu, mem;
+    if(fscanf(node->pf, "%f %f", &cpu, &mem) != 2)
+    {
+        log_write_msg(node->gc->log, "Error rf_get_ps_of_command: %s", 
+                      strerror(errno));
+        ret = -1;
+    }
+    else
+        snprintf(data, 40, ":%3.2f:%3.2f", cpu, mem);
+    pclose(node->pf);
+    return ret;
+}
+
+

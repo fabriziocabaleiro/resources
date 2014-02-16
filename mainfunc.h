@@ -14,6 +14,7 @@
 #include <sys/select.h>
 #include <time.h>
 #include <signal.h>
+#include <unistd.h>
 #include "resinfo.h"
 #include "conffile.h"
 #include "resfunctions.h"
@@ -40,12 +41,17 @@ int mf_exec_cmd(fd_set *readfds, ri *head);
 /**
  * \brief Sleep for the rest of the time, until the next period to collect data
  */
-void mf_sleep_next_time(int st);
+void mf_sleep_next_time(time_t st);
 
 /**
  * \brief Print the current version of the program
  */
 void mf_print_version();
+
+/**
+ * \brief Daemonize the process
+ */
+int mf_daemonize();
 
 #endif
 

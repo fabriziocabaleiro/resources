@@ -12,6 +12,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <error.h>
+#include <errno.h>
 #include "resinfo.h"
 
 //#define RESOURCE        1   /**< A resource type    */

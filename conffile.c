@@ -61,5 +61,7 @@ ri* read_conf_file(char *cfn)
     ri_add(&head, buf);
     for(buf = head; buf != NULL; buf = buf->next)
         buf->gc = gc;
+    if(fclose(fin))
+        printf("Error closing configuration file: %s\n", strerror(errno));
     return head;
 }
