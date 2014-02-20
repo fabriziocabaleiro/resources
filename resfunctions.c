@@ -57,10 +57,17 @@ static int rf_cmd_ps_of_command(ri *node);
 /* PS data collector */
 static int rf_get_ps_of_command(ri *node, char *data);
 
+static void rf_log_generic(ri *node, const char *func, int line)
+{
+    log_write_msg(node->gc->log, "In function %s, line %d, resources type %s "
+        "with label %s had an error: %m", 
+        func, line, node->type, node->label); //, strerror(errno));
+}
+
 int ri_done(ri *head)
 {
     for(; head != NULL; head = head->next)
-        if(!head->done)
+        if(head->status == RI_RUNNING)
             return 0;
     return 1;
 }
@@ -133,31 +140,48 @@ static int rf_cmd_common(ri *node, char *cmd)
     return ret;
 }
 
-static int rf_get_common(char *data, char *fmt, int values, ri *node)
+static int rf_get_common_scan(ri *node, int values, char *fmt, ...)
 {
     va_list va;  /* variable argument */
     int ret = 0; /* return value */
-    int vfr;     /* vfscanf return */
-    errno = 0;
-    vfr = vfscanf(node->pf, fmt, va);
-    if(errno != 0)
+    int sr;      /* scan return */
+    va_start(va, fmt);
+    sr = vfscanf(node->pf, fmt, va);
+    if(feof(node->pf))
     {
-        log_write_msg(node->gc->log, "%s, resources type %s with label %s had "
-                      "an error: %s", __func__, node->type, node->label, 
-                      strerror(errno));
+        log_write_msg(node->gc->log, "In function %s, the EOF was found for "
+                "type %s with label %s", __func__, node->type, node->label);
         ret = -1;
     }
-    else if(vfr == values)
+    else if(sr < 0) /* Error */
     {
-        vsnprintf(data, 40, fmt, va);
-    }
-    else
-    {
-        log_write_msg(node->gc->log, "%s, reading %s couldn't read %d values",
-                      __func__, node->label, values);
+        rf_log_generic(node, __func__, __LINE__);
         ret = -1;
     }
-    pclose(node->pf);
+    else if(sr != values) /* Error */
+    {
+        log_write_msg(node->gc->log, "In function %s, I was expecting to read "
+                "%d values and I read %d values for type %s with label %s",
+                __func__, values, sr, node->type, node->label);
+        ret = -1;
+    }
+    va_end(va);
+    return ret;
+}
+
+static int rf_get_common_print(char *data, ri *node, char *fmt, ...)
+{
+    va_list va;
+    int ret = 0;
+    va_start(va, fmt);
+    if(vsnprintf(data, 40, fmt, va) < 0)
+    {
+        rf_log_generic(node, __func__, __LINE__);
+        ret = -1;
+    }
+    if(pclose(node->pf))
+        rf_log_generic(node, __func__, __LINE__);
+    va_end(va);
     return ret;
 }
 
@@ -168,17 +192,13 @@ static int rf_cmd_cpu(ri *node)
 
 static int rf_get_cpu(ri *node, char *data)
 {
-    int ret = 0;
     float user, nice, system, iowait, steal, idle;
-    if(fscanf(node->pf, "%f %f %f %f %f %f", &user, &nice, &system, &iowait, &steal, &idle) != 6)
-    {
-        log_write_msg(node->gc->log, "Error rf_get_cpu %s: %s", node->label, strerror(errno));
-        ret = -1;
-    }
-    else
-        snprintf(data, 40, ":%2.3f:%2.3f:%2.3f:%2.3f:%2.3f:%2.3f", user, nice, system, iowait, steal, idle);
-    pclose(node->pf);
-    return ret;
+    if(rf_get_common_scan(node, 6, "%f %f %f %f %f %f", 
+                       &user, &nice, &system, &iowait, &steal, &idle) == 0 &&
+       rf_get_common_print(data, node, ":%2.3f:%2.3f:%2.3f:%2.3f:%2.3f:%2.3f",
+                           user, nice, system, iowait, steal, idle) == 0)
+        return 0;
+    return -1;
 }
 
 static int rf_cmd_net(ri *node)
@@ -380,18 +400,10 @@ static int rf_cmd_ps_of_command(ri *node)
 
 static int rf_get_ps_of_command(ri *node, char *data)
 {
-    int ret = 0;
     float cpu, mem;
-    if(fscanf(node->pf, "%f %f", &cpu, &mem) != 2)
-    {
-        log_write_msg(node->gc->log, "Error rf_get_ps_of_command: %s", 
-                      strerror(errno));
-        ret = -1;
-    }
-    else
-        snprintf(data, 40, ":%3.2f:%3.2f", cpu, mem);
-    pclose(node->pf);
-    return ret;
+    if(rf_get_common_scan(node, 2, "%f %f", &cpu, &mem) == 0 &&
+       rf_get_common_print(data, node, ":%3.3f:%3.3f", cpu, mem) == 0)
+        return 0;
+    return -1;
 }
-
 

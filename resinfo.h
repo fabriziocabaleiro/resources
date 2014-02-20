@@ -27,6 +27,20 @@ typedef struct globalconf
 }gconf;
 
 /**
+ * \enum resource_status_enum
+ * \brief Enumerate resources possible status
+ * All the possible status of the resource is list here, from the begin, to the
+ * running process and any possible error or done */
+typedef enum resouce_status_enum
+{
+    RI_BEGIN,     /**< Begin value for the resource status */
+    RI_DONE,      /**< The resource is done, it ran and fetched it's data */
+    RI_DONE_WITH_ERROR, /**< The file descriptor was ready for reading, but, in 
+                          the process there was an error */
+    RI_RUNNING,   /**< The resource is executing a command to generate data */
+}ri_status;
+
+/**
  * @struct resinfo
  * @brief  Contains all the information of a resource
  */
@@ -39,6 +53,7 @@ typedef struct resinfo
     gconf *gc;   /**< Pointer to global configuration structure */
     int done;    /**< Shows if the resource is done fetching the data that it 
                       needs */
+    ri_status status;  /**< Specify the current status of the resource */
     
     /**
      * \brief Execute a command to generate the expecting data

@@ -16,7 +16,7 @@ ri* ri_new()
     new->dev  = NULL;
     new->gname= NULL;
     new->rname= NULL;
-    new->done = -1;
+    new->status = RI_BEGIN;
     new->next = NULL;
     new->exec_cmd = NULL;
     new->get_data = NULL;

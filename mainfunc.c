@@ -30,13 +30,13 @@ int mf_collector(ri *head)
             {
                 for(it = head; it != NULL; it = it->next)
                 {
-                    if(it->done == 0)
+                    if(it->status == RI_RUNNING)
                     {
                         log_write_msg(head->gc->log, "Closing process type %s "
                                       "with label %s for timeout",
                                       head->type, head->label);
                         /* TODO: close file pointer ? */
-                        it->done = 1;
+                        it->status = RI_DONE;
                     }
                 }
                 break;
@@ -53,7 +53,7 @@ int mf_collector(ri *head)
             }
             else if(psr == 0)
             {
-                printf("No bits sets\ntimeout sec: %d\n", (int)timeout.tv_sec);
+                printf("No bits sets\n");
                 continue;
             }
             else
@@ -62,10 +62,14 @@ int mf_collector(ri *head)
                 {
                     if(FD_ISSET(it->fd, &rfdscpy))
                     {
-                        if(it->get_data(it, data) == 0)
-                            rrd_update(it, data);
                         FD_CLR(it->fd, &readfds);
-                        it->done = 1;
+                        if(it->get_data(it, data) == 0)
+                        {
+                            rrd_update(it, data);
+                            it->status = RI_DONE;
+                        }
+                        else
+                            it->status = RI_DONE_WITH_ERROR;
                     }
                 }
             }
@@ -126,7 +130,7 @@ int mf_exec_cmd(fd_set *readfds, ri *head)
         {
             FD_SET(it->fd, readfds);
             nfds = nfds < it->fd ? it->fd : nfds;
-            it->done = 0;
+            it->status = RI_RUNNING;
         }
     }
     return nfds + 1;
