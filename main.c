@@ -25,12 +25,15 @@ int main(int argc, char** argv)
     {
         args_print(&arg);
         ri_print(head);
-        gconf_print(head->gc);
+        if(head)
+            gconf_print(head->gc);
     }
     if(arg.version)
         mf_print_version();
     if(arg.graph)
         mf_graph(head, &arg);
+    if(head)
+        gconf_free(head->gc);
     if(arg.collect)
         mf_collector(head);
     ri_free(head);

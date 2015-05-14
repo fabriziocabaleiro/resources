@@ -11,15 +11,17 @@ ri* ri_new()
 {
     ri *new;
     new = (ri*)malloc(sizeof(ri));
-    new->type = NULL;
-    new->fs   = NULL;
-    new->dev  = NULL;
-    new->gname= NULL;
-    new->rname= NULL;
-    new->status = RI_BEGIN;
-    new->next = NULL;
+    new->type     = NULL;
+    new->rname    = NULL;
+    new->gname    = NULL;
+    new->label    = NULL;
+    new->fs       = NULL;
+    new->dev      = NULL;
+    new->command  = NULL;
+    new->next     = NULL;
     new->exec_cmd = NULL;
     new->get_data = NULL;
+    new->status   = RI_BEGIN;
     return new;
 }
 
@@ -68,8 +70,22 @@ void ri_free(ri *node)
     if(node == NULL)
         return;
     ri_free(node->next);
+    if(node->gname)
+        printf("freeing %s\n", node->gname);
     if(node->type != NULL)
         free(node->type);
+    if(node->rname != NULL)
+        free(node->rname);
+    if(node->gname != NULL)
+        free(node->gname);
+    if(node->label != NULL)
+        free(node->label);
+    if(node->fs != NULL)
+        free(node->fs);
+    if(node->dev != NULL)
+        free(node->dev);
+    if(node->command != NULL)
+        free(node->command);
     free(node);
 }
 
@@ -95,7 +111,19 @@ gconf* gconf_new()
     new = (gconf*)malloc(sizeof(gconf));
     new->gpath = NULL;
     new->rpath = NULL;
+    new->log   = NULL;
     return new;
+}
+
+void gconf_free(gconf *gc)
+{
+    if(gc->gpath)
+        free(gc->gpath);
+    if(gc->rpath)
+        free(gc->rpath);
+    if(gc->log)
+        free(gc->log);
+    free(gc);
 }
 
 void gconf_fill(gconf *gc, char *line)
@@ -120,4 +148,5 @@ void gconf_print(gconf *gc)
     char sfmt[] = "%-6s%s\n";
     printf(sfmt, "rpath", gc->rpath);
     printf(sfmt, "gpath", gc->gpath);
+    printf(sfmt, "log",   gc->log);
 }

@@ -131,6 +131,8 @@ void ri_print(ri *head);
  */
 gconf* gconf_new();
 
+void gconf_free(gconf*);
+
 /**
  * \brief Fill a gconf instance with data from the line giving by argument
  * \param gc An instance of gconf structure to be fill
