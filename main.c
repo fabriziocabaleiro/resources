@@ -55,10 +55,11 @@ int main(int argc, char** argv)
         mf_print_version();
     if(arg.graph)
         mf_graph(head, &arg);
-    if(head)
-        gconf_free(head->gc);
     if(arg.collect)
         mf_collector(head);
+
+    if(head)
+        gconf_free(head->gc);
     ri_free(head);
     printf("Thanks for using resources\n");
     return (EXIT_SUCCESS);
