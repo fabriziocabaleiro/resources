@@ -83,10 +83,10 @@ static int rf_cmd_current_users(ri *node);
 static int rf_get_current_users(ri *node, char *data);
 
 /* PS command */
-static int rf_cmd_ps_of_command(ri *node);
+static int rf_cmd_ps(ri *node);
 
 /* PS data collector */
-static int rf_get_ps_of_command(ri *node, char *data);
+static int rf_get_ps(ri *node, char *data);
 
 static void rf_log_generic(ri *node, const char *func, int line)
 {
@@ -149,10 +149,9 @@ void assign_func(ri *head)
         }
         else if(!strcmp(head->type, "ps"))
         {
-            head->exec_cmd = rf_cmd_ps_of_command;
-            head->get_data = rf_get_ps_of_command;
+            head->exec_cmd = rf_cmd_ps;
+            head->get_data = rf_get_ps;
         }
-
         else
             printf("No function assigned to %s", head->label);
     }
@@ -422,14 +421,18 @@ static int rf_get_current_users(ri *node, char *data)
     return ret;
 }
 
-static int rf_cmd_ps_of_command(ri *node)
+static int rf_cmd_ps(ri *node)
 {
     char cmd[200];
-    snprintf(cmd, 200, "ps h -o pcpu,pmem -C %s", node->command);
+    if(node->user)
+      snprintf(cmd, 200, "ps h -o pcpu,pmem -u %s", node->user);
+    else
+      snprintf(cmd, 200, "ps h -o pcpu,pmem -C %s", node->command);
+    printf("%s\n", cmd);
     return rf_cmd_common(node, cmd);
 }
 
-static int rf_get_ps_of_command(ri *node, char *data)
+static int rf_get_ps(ri *node, char *data)
 {
     float cpu, mem;
     if(rf_get_common_scan(node, 2, "%f %f", &cpu, &mem) == 0 &&
@@ -437,4 +440,3 @@ static int rf_get_ps_of_command(ri *node, char *data)
         return 0;
     return -1;
 }
-

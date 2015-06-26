@@ -101,12 +101,13 @@ typedef struct resinfo
     FILE* pf; /**< Pointer to file, this file is normally generated with popen*/
     int   fd; /**< File descriptor, used with pselect to see if the asynchronous
                    data is ready to be read */
-    
+
     char *fs;   /**< File system, used by df when getting the used disk space */
     char *dev;  /**< Device, used to get the transmitted bytes from the internet
                      devices */
-    char *command; /**< Name of the command to be monitoring with PS */
-    
+    char *command; /**< Name of the command to be monitored with PS */
+    char *user;    /**< Name of user to be monitored with PS */
+
     struct resinfo *next;  /**< Next instance of resource info          */
 }ri;
 

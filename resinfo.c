@@ -41,6 +41,7 @@ ri* ri_new()
     new->fs       = NULL;
     new->dev      = NULL;
     new->command  = NULL;
+    new->user     = NULL;
     new->next     = NULL;
     new->exec_cmd = NULL;
     new->get_data = NULL;
@@ -81,6 +82,8 @@ void ri_fill(ri *node, char *line)
         node->dev = buf;
     else if(!strcmp(var, "cmd"))
         node->command = buf;
+    else if(!strcmp(var, "user"))
+        node->user = buf;
     else
     {
         printf("free %s %s\n", var, buf);
@@ -93,8 +96,6 @@ void ri_free(ri *node)
     if(node == NULL)
         return;
     ri_free(node->next);
-    if(node->gname)
-        printf("freeing %s\n", node->gname);
     if(node->type != NULL)
         free(node->type);
     if(node->rname != NULL)
@@ -109,6 +110,8 @@ void ri_free(ri *node)
         free(node->dev);
     if(node->command != NULL)
         free(node->command);
+    if(node->user != NULL)
+        free(node->user);
     free(node);
 }
 

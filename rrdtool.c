@@ -96,8 +96,8 @@ void rrd_create(ri *node)
     else if(!strcmp(node->type, "ps"))
     {
         snprintf(cmd2, 200,
-                "DS:cpu:GAUGE:60:0:100 "
-                "DS:mem:GAUGE:60:0:100 ");
+                "DS:cpu:GAUGE:60:0:2000 "
+                "DS:mem:GAUGE:60:0:2000 ");
     }
     else if(!strcmp(node->type, "all_users"))
     {

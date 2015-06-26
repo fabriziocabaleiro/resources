@@ -55,3 +55,4 @@ objs/log.o: log.c log.h
 
 clean:
 	rm objs/*.o
+	rm resources resweb
