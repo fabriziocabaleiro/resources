@@ -63,11 +63,9 @@ ri* read_conf_file(char *cfn)
         printf("Error opening configuration file '%s'\n", cfn);
         return NULL;
     }
-    for(;;)
+    for(!feof(fin))
     {
         fscanf(fin, "%200[^\n]\n", line);
-        if(feof(fin))
-            break;
         if(*line == '\n' || *line == '#')
             continue;
         if(*line == '[')

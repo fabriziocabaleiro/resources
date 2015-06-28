@@ -425,18 +425,31 @@ static int rf_cmd_ps(ri *node)
 {
     char cmd[200];
     if(node->user)
-      snprintf(cmd, 200, "ps h -o pcpu,pmem -u %s", node->user);
+        snprintf(cmd, 200, "ps h -o pcpu,pmem -u %s", node->user);
     else
-      snprintf(cmd, 200, "ps h -o pcpu,pmem -C %s", node->command);
-    printf("%s\n", cmd);
+        snprintf(cmd, 200, "ps h -o pcpu,pmem -C %s", node->command);
     return rf_cmd_common(node, cmd);
 }
 
 static int rf_get_ps(ri *node, char *data)
 {
-    float cpu, mem;
-    if(rf_get_common_scan(node, 2, "%f %f", &cpu, &mem) == 0 &&
-       rf_get_common_print(data, node, ":%3.3f:%3.3f", cpu, mem) == 0)
-        return 0;
-    return -1;
+    float cpu = 0, mem = 0;
+    float tcpu = 0, tmem = 0; /* total cpu and mem */
+    int frv; /* fscanf return value */
+    for(;;)
+    {
+        frv = fscanf(node->pf, "%f %f", &cpu, &mem);
+        if(frv != 2)
+        {
+            if(feof(node->pf))
+                break;
+            log_write_msg(node->gc->log, "In function %s, I was expecting to read "
+                    "%d values and I read %d values for type %s with label %s",
+                    __func__, 2, frv, node->type, node->label);
+            return -1;
+        }
+        tcpu += cpu;
+        tmem += mem;
+    }
+    return rf_get_common_print(data, node, ":%3.3f:%3.3f", tcpu, tmem);
 }
