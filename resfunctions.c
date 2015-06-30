@@ -1,3 +1,4 @@
+/* vim: set shiftwidth=4 : set tabstop=4 : set expandtab : */
 /*
 
 Copyright (C) 2013-2015 Fabrizio Cabaleiro T.
@@ -314,7 +315,7 @@ static int rf_get_disk(ri *node, char *data)
 
 static int rf_cmd_uptime(ri *node)
 {
-    char cmd[] = "uptime|tr ',' ' '|awk '{for(i=1;i<=NF;i++)if($i ~ /user/)printf \"%d \",$(i-1);print $(NF-2)" "$(NF-1)" "$NF;}'";
+    char cmd[] = "uptime|tr ',' ' '|awk '{for(i=1;i<=NF;i++)if($i ~ /user/)printf \"%d \",$(i-1);printf \"%f %f %f\", $(NF-2), $(NF-1), $NF;}'";
     return rf_cmd_common(node, cmd);
 }
 

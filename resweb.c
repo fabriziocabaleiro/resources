@@ -1,3 +1,4 @@
+/* vim: set shiftwidth=4 : set tabstop=4 : set expandtab : */
 /*
 
 Copyright (C) 2013-2015 Fabrizio Cabaleiro T.
@@ -74,7 +75,7 @@ void rw_head()
 {
     printf("\t<head>\n");
     rw_css();
-    printf("\t\t<title>PlaceTribe's resources</title>\n");
+    printf("\t\t<title>Resources</title>\n");
     printf("\t</head>\n");
 }
 

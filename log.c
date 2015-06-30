@@ -1,3 +1,4 @@
+/* vim: set shiftwidth=4 : set tabstop=4 : set expandtab : */
 /*
 
 Copyright (C) 2013-2015 Fabrizio Cabaleiro T.

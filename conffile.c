@@ -1,3 +1,4 @@
+/* vim: set shiftwidth=4 : set tabstop=4 : set expandtab : */
 /*
 
 Copyright (C) 2013-2015 Fabrizio Cabaleiro T.
@@ -63,7 +64,7 @@ ri* read_conf_file(char *cfn)
         printf("Error opening configuration file '%s'\n", cfn);
         return NULL;
     }
-    for(!feof(fin))
+    while(!feof(fin))
     {
         fscanf(fin, "%200[^\n]\n", line);
         if(*line == '\n' || *line == '#')
