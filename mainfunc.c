@@ -167,11 +167,14 @@ int mf_exec_cmd(fd_set *readfds, ri *head)
     return nfds + 1;
 }
 
+#ifndef VERSION
+#define VERSION "UNKNOWN"
+#endif
 void mf_print_version()
 {
-    printf("Version 1.0\n"
+    printf("Version %s\n"
            "Compiled date: %s\n",
-           __DATE__);
+           VERSION, __DATE__);
 }
 
 int mf_daemonize()
