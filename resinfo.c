@@ -137,6 +137,7 @@ gconf* gconf_new()
     gconf *new;
     new = (gconf*)malloc(sizeof(gconf));
     new->gpath = NULL;
+    new->wgpath = NULL;
     new->rpath = NULL;
     new->log   = NULL;
     return new;
@@ -146,6 +147,8 @@ void gconf_free(gconf *gc)
 {
     if(gc->gpath)
         free(gc->gpath);
+    if(gc->wgpath)
+        free(gc->wgpath);
     if(gc->rpath)
         free(gc->rpath);
     if(gc->log)
@@ -164,6 +167,8 @@ void gconf_fill(gconf *gc, char *line)
         gc->rpath = buf;
     else if(!strcmp(var, "gpath"))
         gc->gpath = buf;
+    else if(!strcmp(var, "wgpath"))
+        gc->wgpath = buf;
     else if(!strcmp(var, "log"))
         gc->log   = buf;
     else
@@ -173,7 +178,8 @@ void gconf_fill(gconf *gc, char *line)
 void gconf_print(gconf *gc)
 {
     char sfmt[] = "%-6s%s\n";
-    printf(sfmt, "rpath", gc->rpath);
-    printf(sfmt, "gpath", gc->gpath);
-    printf(sfmt, "log",   gc->log);
+    printf(sfmt, "rpath",  gc->rpath);
+    printf(sfmt, "gpath",  gc->gpath);
+    printf(sfmt, "wgpath", gc->wgpath);
+    printf(sfmt, "log",    gc->log);
 }
