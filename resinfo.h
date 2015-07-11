@@ -46,6 +46,7 @@ typedef struct globalconf
 {
     char *rpath;  /**< Path to the rrd directory */
     char *gpath;  /**< Path to the graph (png) directory */
+    char *wgpath; /**< Web path to the graph (png) directory */
     char *log;    /**< File name with whole path for logging */ 
 }gconf;
 

@@ -87,7 +87,7 @@ void rw_images(ri *res)
     {
         if(tr % 2 == 0)
             printf("\t\t<tr>\n");
-        printf("\t\t\t<td><img src='%s/%s.png' /></td>\n", res->gc->gpath, res->gname);
+        printf("\t\t\t<td><img src='%s/%s.png' /></td>\n", res->gc->wgpath, res->gname);
         if((tr + 1) % 2 == 0)
             printf("\t\t</tr>\n");
         tr++;
@@ -136,7 +136,7 @@ void rw_image(ri *res, pd *post)
     if(res == NULL)
         return;
     printf("\t\t<div style='width: 100%%; text-align:center;'>\n");
-    printf("\t\t\t<img src='%s/%s.png' style='margin: auto' />\n", res->gc->gpath, res->gname);
+    printf("\t\t\t<img src='%s/%s.png' style='margin: auto' />\n", res->gc->wgpath, res->gname);
     printf("\t\t</div>\n");
 }
 
