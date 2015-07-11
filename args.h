@@ -39,6 +39,7 @@ along with Resources; see the file COPYING.  If not, see
 #include <unistd.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include "log.h"
 
 /** 
  * \struct arguments  
@@ -60,6 +61,12 @@ typedef struct argument_struct
     unsigned int daemon:1;  /**< Run the program in daemon mode */
     char *res;     /**< The type of resources to graph in GRAPH mode  */
     char *rrdopt;  /**< Additional options for the rrdtool command */
+    char *gpath;   /**< Prefer given graph path instead of the one at the
+                        configuration file */
+    char *rpath;   /**< Prefer given rrd path instead of the one at the
+                        configuration file */
+    char *logfile;  /**< Specify a log file */
+    char *conffile; /**< Specify a configuration file */
 }args;
 
 /** 

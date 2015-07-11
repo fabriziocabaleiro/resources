@@ -35,6 +35,7 @@ along with Resources; see the file COPYING.  If not, see
 #include <string.h>
 #include <unistd.h>
 #include <error.h>
+#include "args.h"
 
 #define RES_DONE 1
 
@@ -47,6 +48,7 @@ typedef struct globalconf
     char *rpath;  /**< Path to the rrd directory */
     char *gpath;  /**< Path to the graph (png) directory */
     char *log;    /**< File name with whole path for logging */ 
+    args *arg;    /**< Given arguments */
 }gconf;
 
 /**

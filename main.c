@@ -40,7 +40,12 @@ int main(int argc, char** argv)
     args arg;
     
     args_get(argc, argv, &arg);
-    head = read_conf_file("config.conf");
+    head = arg.conffile ? read_conf_file(arg.conffile) :
+                          read_conf_file("config.conf");
+    if(head && !log_get_file())
+        log_set_file(head->gc->log);
+    if(head)
+        head->gc->arg = &arg;
     assign_func(head);
     
     if(arg.daemon && mf_daemonize())

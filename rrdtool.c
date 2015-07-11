@@ -34,7 +34,9 @@ along with Resources; see the file COPYING.  If not, see
 int rrd_exits(ri *node)
 {
     char fname[100];
-    snprintf(fname, 100, "%s/%s.rrd", node->gc->rpath, node->rname);
+    char *rpath = node->gc->arg->rpath ? node->gc->arg->rpath :
+                                         node->gc->rpath;
+    snprintf(fname, 100, "%s/%s.rrd", rpath, node->rname);
     struct stat buf;
     if(stat(fname, &buf))
         return 0;
@@ -48,8 +50,10 @@ void rrd_create(ri *node)
     char cmd1[100];
     char cmd2[200];
     char cmd3[100];
-    
-    snprintf(cmd1, 100, "rrdtool create %s/%s.rrd --step 30 ", node->gc->rpath, node->rname);
+    char *rpath = node->gc->arg->rpath ? node->gc->arg->rpath :
+                                         node->gc->rpath;
+
+    snprintf(cmd1, 100, "rrdtool create %s/%s.rrd --step 30 ", rpath, node->rname);
     if(!strcmp(node->type, "cpu"))
     {
         snprintf(cmd2, 200,
@@ -112,7 +116,7 @@ void rrd_create(ri *node)
     }
     else
     {
-        log_write_msg(node->gc->log, "Error rrd_create %s: %s", node->label, strerror(errno));
+        log_write_msg("Error rrd_create %s: %s", node->label, strerror(errno));
         return;
     }
     snprintf(cmd3, 100, 
@@ -128,6 +132,10 @@ void rrd_graph(ri *node, const args *arg)
 {
     char cmd[900];
     char cmd2[700];
+    char *rpath = node->gc->arg->rpath ? node->gc->arg->rpath :
+                                         node->gc->rpath;
+    char *gpath = node->gc->arg->gpath ? node->gc->arg->gpath :
+                                         node->gc->gpath;
     if(!strcmp(node->type, "cpu"))
     {
         snprintf(cmd2, 700, 
@@ -142,7 +150,7 @@ void rrd_graph(ri *node, const args *arg)
                 "STACK:system#0000ff:'System' "
                 "STACK:iowait#00ffff:'IOwait' "
                 "STACK:steal#ff00ff:'Steal' "
-                "STACK:idle#ffff00:'Idle' ", node->gc->rpath, node->rname);
+                "STACK:idle#ffff00:'Idle' ", rpath, node->rname);
     }
     else if(!strcmp(node->type, "disk"))
     {
@@ -153,7 +161,7 @@ void rrd_graph(ri *node, const args *arg)
                 "CDEF:used2=used,1024,* "
                 "CDEF:available=total,used,-,1024,* "
                 "AREA:used2#00ff00:'Used' "
-                "STACK:available#0000ff:'Free' ", node->gc->rpath, node->rname);
+                "STACK:available#0000ff:'Free' ", rpath, node->rname);
     }
     else if(!strcmp(node->type, "net"))
     {
@@ -161,7 +169,7 @@ void rrd_graph(ri *node, const args *arg)
                 "DEF:in=%1$s/%2$s.rrd:in:AVERAGE "
                 "DEF:out=%1$s/%2$s.rrd:out:AVERAGE "
                 "LINE2:in#00ff00:'Incomming Bytes/s' "
-                "LINE2:out#0000ff:'Outgoing Bytes/s' ", node->gc->rpath, node->rname);
+                "LINE2:out#0000ff:'Outgoing Bytes/s' ", rpath, node->rname);
     }
     else if(!strcmp(node->type, "uptime"))
     {
@@ -173,7 +181,7 @@ void rrd_graph(ri *node, const args *arg)
                 /*"LINE2:users#000000:'Users' "*/
                 "LINE2:l1#ff0000:'1 minute' "
                 "LINE2:l5#00ff00:'5 minutes' "
-                "LINE2:l15#0000ff:'15 minutes' ", node->gc->rpath, node->rname);
+                "LINE2:l15#0000ff:'15 minutes' ", rpath, node->rname);
     }
     else if(!strcmp(node->type, "mem"))
     {
@@ -189,7 +197,7 @@ void rrd_graph(ri *node, const args *arg)
                 "AREA:other#00ff00:'Inactive' "
                 "STACK:buffer2#ff0000:'Buffer' "
                 "STACK:cached2#ffff00:'Cached' "
-                "STACK:free2#0000ff:'Free' ", node->gc->rpath, node->rname);
+                "STACK:free2#0000ff:'Free' ", rpath, node->rname);
     }
     else if(!strcmp(node->type, "swap"))
     {
@@ -199,7 +207,7 @@ void rrd_graph(ri *node, const args *arg)
                 "CDEF:used=total,free,-,1024,* "
                 "CDEF:free2=free,1024,* "
                 "AREA:used#00ff00:'Used' "
-                "STACK:free2#0000ff:'Free' ", node->gc->rpath, node->rname);
+                "STACK:free2#0000ff:'Free' ", rpath, node->rname);
     }
     else if(!strcmp(node->type, "ps"))
     {
@@ -207,27 +215,27 @@ void rrd_graph(ri *node, const args *arg)
                 "DEF:cpu=%1$s/%2$s.rrd:cpu:AVERAGE "
                 "DEF:mem=%1$s/%2$s.rrd:mem:AVERAGE "
                 "LINE2:cpu#ff0000:'CPU %%' "
-                "LINE2:mem#00ffff:'RAM %%' ", node->gc->rpath, node->rname);
+                "LINE2:mem#00ffff:'RAM %%' ", rpath, node->rname);
     }
     else if(!strcmp(node->type, "all_users"))
     {
         snprintf(cmd2, 700,
                 "DEF:users=%1$s/%2$s.rrd:users:AVERAGE "
-                "LINE2:users#00ff00:'All Users' ", node->gc->rpath, node->rname);
+                "LINE2:users#00ff00:'All Users' ", rpath, node->rname);
     }
     else if(!strcmp(node->type, "current_users"))
     {
         snprintf(cmd2, 700,
                 "DEF:users=%1$s/%2$s.rrd:users:AVERAGE "
-                "LINE2:users#00ff00:'Current Users' ", node->gc->rpath, node->rname);
+                "LINE2:users#00ff00:'Current Users' ", rpath, node->rname);
     }
     else
     {
-        log_write_msg(node->gc->log, "Error trying to graph type %s that didn't match any", node->type);
+        log_write_msg("Error trying to graph type %s that didn't match any", node->type);
         return;
     }
     snprintf(cmd, 900, "rrdtool graph %s/%s.png -l 0 -t '%s' -s -3600 -e -30 "
-            "-w 550 -h 300 %s %s", node->gc->gpath, node->gname, node->label, 
+            "-w 550 -h 300 %s %s", gpath, node->gname, node->label, 
             arg->rrdopt == NULL? "": arg->rrdopt, cmd2);
     system(cmd);
 }
@@ -235,9 +243,11 @@ void rrd_graph(ri *node, const args *arg)
 void rrd_update(ri *node, char *data)
 {
     char cmd[300];
+    char *rpath = node->gc->arg->rpath ? node->gc->arg->rpath :
+                                         node->gc->rpath;
     if(!rrd_exits(node))
         rrd_create(node);
-    snprintf(cmd, 300, "rrdtool update %s/%s.rrd N%s", node->gc->rpath, node->rname, data);
-    log_write_msg(node->gc->log, "%s", cmd);
+    snprintf(cmd, 300, "rrdtool update %s/%s.rrd N%s", rpath, node->rname, data);
+    log_write_msg("%s", cmd);
     system(cmd);
 }

@@ -45,7 +45,20 @@ along with Resources; see the file COPYING.  If not, see
  * @param fmt  Format with text and variables.
  * @param ...  Variable amount of arguments.
  */
-void log_write_msg(char *file, char *fmt, ...);
+void log_write_msg(char *fmt, ...);
+
+/**
+ * @brief Set a log file to write
+ * @param file File name.
+ */
+int log_set_file(char *file);
+
+/**
+ * @brief Get a log file name
+ * @param void
+ * @return char*
+ */
+char* log_get_file(void);
 
 #endif	/* LOG_H */
 

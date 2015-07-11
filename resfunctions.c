@@ -91,9 +91,8 @@ static int rf_get_ps(ri *node, char *data);
 
 static void rf_log_generic(ri *node, const char *func, int line)
 {
-    log_write_msg(node->gc->log, "In function %s, line %d, resources type %s "
-        "with label %s had an error: %m", 
-        func, line, node->type, node->label); //, strerror(errno));
+    log_write_msg("In function %s, line %d, resources type %s with label %s had"
+                  " an error: %m", func, line, node->type, node->label);
 }
 
 int ri_done(ri *head)
@@ -163,7 +162,7 @@ static int rf_cmd_common(ri *node, char *cmd)
     int ret = 0;
     if((node->pf = popen(cmd, "r")) == NULL)
     {
-        log_write_msg(node->gc->log, "Error rf_cmd_common %s: %s", node->label,
+        log_write_msg("Error rf_cmd_common %s: %s", node->label,
                       strerror(errno));
         ret = -1;
     }
@@ -180,8 +179,8 @@ static int rf_get_common_scan(ri *node, int values, char *fmt, ...)
     sr = vfscanf(node->pf, fmt, va);
     if(feof(node->pf))
     {
-        log_write_msg(node->gc->log, "In function %s, the EOF was found for "
-                "type %s with label %s", __func__, node->type, node->label);
+        log_write_msg("In function %s, the EOF was found for type %s with label"
+                      " %s", __func__, node->type, node->label);
         ret = -1;
     }
     else if(sr < 0) /* Error */
@@ -191,7 +190,7 @@ static int rf_get_common_scan(ri *node, int values, char *fmt, ...)
     }
     else if(sr != values) /* Error */
     {
-        log_write_msg(node->gc->log, "In function %s, I was expecting to read "
+        log_write_msg("In function %s, I was expecting to read "
                 "%d values and I read %d values for type %s with label %s",
                 __func__, values, sr, node->type, node->label);
         ret = -1;
@@ -282,7 +281,7 @@ static int rf_get_net(ri *node, char *data)
     long long int in, out;
     if(fscanf(node->pf, "%Ld %Ld", &in, &out) != 2)
     {
-        log_write_msg(node->gc->log, "Error rf_get_cpu %s: %s", node->label, strerror(errno));
+        log_write_msg("Error rf_get_cpu %s: %s", node->label, strerror(errno));
         ret = -1;
     }
     else
@@ -304,7 +303,7 @@ static int rf_get_disk(ri *node, char *data)
     long long int total, used;
     if(fscanf(node->pf, "%*s %Ld %Ld", &total, &used) != 2)
     {
-        log_write_msg(node->gc->log, "Error rf_get_cpu %s: %s", node->label, strerror(errno));
+        log_write_msg("Error rf_get_cpu %s: %s", node->label, strerror(errno));
         ret = -1;
     }
     else
@@ -326,7 +325,7 @@ static int rf_get_uptime(ri *node, char *data)
     int users;
     if(fscanf(node->pf, "%d %f %f %f", &users, &l1, &l5, &l15) != 4)
     {
-        log_write_msg(node->gc->log, "Error rf_get_cpu %s: %s", node->label, strerror(errno));
+        log_write_msg("Error rf_get_cpu %s: %s", node->label, strerror(errno));
         ret = -1;
     }
     else
@@ -347,7 +346,7 @@ static int rf_get_mem(ri *node, char *data)
     int mtotal, mfree, buffer, cached;
     if(fscanf(node->pf, "%d %d %d %d", &mtotal, &mfree, &buffer, &cached) != 4)
     {
-        log_write_msg(node->gc->log, "Error rf_get_cpu %s: %s", node->label, strerror(errno));
+        log_write_msg("Error rf_get_cpu %s: %s", node->label, strerror(errno));
         ret = -1;
     }
     else
@@ -368,7 +367,7 @@ static int rf_get_swap(ri *node, char *data)
     int mtotal, mfree;
     if(fscanf(node->pf, "%d %d", &mtotal, &mfree) != 2)
     {
-        log_write_msg(node->gc->log, "Error rf_get_cpu %s: %s", node->label, strerror(errno));
+        log_write_msg("Error rf_get_cpu %s: %s", node->label, strerror(errno));
         ret = -1;
     }
     else
@@ -389,7 +388,7 @@ static int rf_get_all_users(ri *node, char *data)
     int ret = 0;
     if(fscanf(node->pf, "%d", &users) != 1)
     {
-        log_write_msg(node->gc->log, "Error rf_get_all_users: %s", 
+        log_write_msg("Error rf_get_all_users: %s", 
                       strerror(errno));
         ret = -1;
     }
@@ -412,8 +411,7 @@ static int rf_get_current_users(ri *node, char *data)
     int ret = 0;
     if(fscanf(node->pf, "%d", &users) != 1)
     {
-        log_write_msg(node->gc->log, "Error rf_get_current_users: %s", 
-                      strerror(errno));
+        log_write_msg("Error rf_get_current_users: %s", strerror(errno));
         ret = -1;
     }
     else
@@ -444,7 +442,7 @@ static int rf_get_ps(ri *node, char *data)
         {
             if(feof(node->pf))
                 break;
-            log_write_msg(node->gc->log, "In function %s, I was expecting to read "
+            log_write_msg("In function %s, I was expecting to read "
                     "%d values and I read %d values for type %s with label %s",
                     __func__, 2, frv, node->type, node->label);
             return -1;

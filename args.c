@@ -33,12 +33,63 @@ along with Resources; see the file COPYING.  If not, see
 
 void args_init(args *arg)
 {
-    arg->collect = 0;
-    arg->graph   = 0;
-    arg->test    = 0;
-    arg->version = 0;
-    arg->daemon  = 0;
-    arg->rrdopt  = NULL;
+    arg->collect  = 0;
+    arg->graph    = 0;
+    arg->test     = 0;
+    arg->version  = 0;
+    arg->daemon   = 0;
+    arg->res      = NULL;
+    arg->rrdopt   = NULL;
+    arg->rpath    = NULL;
+    arg->gpath    = NULL;
+    arg->logfile  = NULL;
+    arg->conffile = NULL;
+}
+
+/** 
+ * @brief  Check if the given configuration file is ok.
+ * @param  file, string with the configuration file name
+ * @return Zero on success, else any other value.
+ * @date   Sat Jul 11 00:43:17 CLT 2015
+ * Check if the configuration file exists and it is a regular file
+ */
+static int check_configuration_file(char *file)
+{
+    struct stat file_info;
+    if(stat(file, &file_info))
+    {
+        printf("Error: configuration file: %s\n", strerror(errno));
+        return -1;
+    }
+    if((file_info.st_mode & S_IFMT) != S_IFREG)
+    {
+        printf("Error: Given configuration file is not a regular file\n");
+        return -1;
+    }
+    return 0;
+}
+
+/** 
+ * @brief  Check if the given path is ok
+ * @param  directory, string with the directory name.
+ * @return Zero on success, else any other value.
+ * @date   Sat Jul 11 00:43:17 CLT 2015
+ * Check if the given directory exists and it is a directory.
+ */
+static int check_valid_path(char *file)
+{
+    struct stat file_info;
+    if(stat(file, &file_info))
+    {
+        printf("Error: path: %s\n", strerror(errno));
+        return -1;
+    }
+    if((file_info.st_mode & S_IFMT) != S_IFDIR)
+    {
+        printf("Error: given path is not a directory\n");
+        return -1;
+    }
+    return 0;
 }
 
 int args_get(int argc, char **argv, args *arg)
@@ -75,7 +126,40 @@ int args_get(int argc, char **argv, args *arg)
             ret++;
         }
         else if(!strcmp(*(argv + i), "-v") || !strcmp(*(argv + i), "--version"))
+        {
             arg->version = 1;
+            ret++;
+        }
+        else if(!strcmp(*(argv + i), "-gp") || !strcmp(*(argv + i), "--gpath"))
+        {
+            if(!check_valid_path(*(argv + i + 1)))
+            {
+                arg->gpath = *(argv + i + 1);
+                ret++;
+            }
+        }
+        else if(!strcmp(*(argv + i), "-rp") || !strcmp(*(argv + i), "--rpath"))
+        {
+            if(!check_valid_path(*(argv + i + 1)))
+            {
+                arg->rpath = *(argv + i + 1);
+                ret++;
+            }
+        }
+        else if(!strcmp(*(argv + i), "-f") || !strcmp(*(argv + i), "--conffile"))
+        {
+            if(!check_configuration_file(*(argv + i + 1)))
+            {
+                arg->conffile = *(argv + i + 1);
+                ret++;
+            }
+        }
+        else if(!strcmp(*(argv + i), "-l") || !strcmp(*(argv + i), "--log"))
+        {
+            arg->logfile = *(argv + i + 1);
+            log_set_file(*(argv + i + 1));
+            ret++;
+        }
     }
     return ret;
 }
@@ -83,9 +167,16 @@ int args_get(int argc, char **argv, args *arg)
 void args_print(args *arg)
 {
     char dfmt[] = "%-10s%d\n";
+    char sfmt[] = "%-10s%s\n";
     printf(dfmt, "collect", arg->collect);
-    printf(dfmt, "graph", arg->graph);
     printf(dfmt, "test", arg->test);
+    printf(dfmt, "graph", arg->graph);
     printf(dfmt, "version", arg->version);
     printf(dfmt, "daemon", arg->daemon);
+    printf(sfmt, "resources", arg->res);
+    printf(sfmt, "rrdopt", arg->rrdopt);
+    printf(sfmt, "gpath", arg->gpath);
+    printf(sfmt, "rpath", arg->rpath);
+    printf(sfmt, "conffile", arg->conffile);
+    printf(sfmt, "logfile", arg->logfile);
 }

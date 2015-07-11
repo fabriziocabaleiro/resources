@@ -17,7 +17,7 @@ WOBJ= \
 CC     = gcc
 FLAGS  = -Wall -g
 CFLAGS = $(FLAGS) -c
-VERSION=$(shell git tag|head -n1)
+VERSION=$(shell git tag|tail -n1)
 
 all: resources resweb
 
@@ -36,7 +36,7 @@ objs/main.o: main.c resinfo.h conffile.h args.h log.h mainfunc.h
 objs/mainfunc.o: mainfunc.c rrdtool.h resinfo.h conffile.h resfunctions.h args.h log.h 
 	$(CC) $(CFLAGS) -DVERSION=\"$(VERSION)\" $< -o $@
 
-objs/resinfo.o: resinfo.c resinfo.h 
+objs/resinfo.o: resinfo.c resinfo.h args.h
 	$(CC) $(CFLAGS) $< -o $@
 
 objs/resfunctions.o: resfunctions.c resfunctions.h resinfo.h 
@@ -48,7 +48,7 @@ objs/conffile.o: conffile.c conffile.h resinfo.h
 objs/rrdtool.o: rrdtool.c rrdtool.h 
 	$(CC) $(CFLAGS) $< -o $@
 
-objs/args.o: args.c args.h 
+objs/args.o: args.c args.h log.h
 	$(CC) $(CFLAGS) $< -o $@
 
 objs/log.o: log.c log.h 

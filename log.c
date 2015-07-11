@@ -31,6 +31,8 @@ along with Resources; see the file COPYING.  If not, see
 
 #include "log.h"
 
+static char *logfile;
+
 static void log_write_time(FILE *pf)
 {
     char buf[30];
@@ -39,16 +41,27 @@ static void log_write_time(FILE *pf)
     fprintf(pf, "%s: ", buf);
 }
 
-void log_write_msg(char *file, char *fmt, ...)
+void log_write_msg(char *fmt, ...)
 {
     FILE *pf;
     va_list arg;
     va_start(arg, fmt);
-    if((pf = fopen(file, "a")) == NULL)
+    if((pf = fopen(logfile, "a")) == NULL)
         return;
     log_write_time(pf);
     vfprintf(pf, fmt, arg);
     fprintf(pf, "\n");
     fclose(pf);
     va_end(arg);
+}
+
+int log_set_file(char *file)
+{
+    logfile = file;
+    return 0;
+}
+
+char* log_get_file(void)
+{
+    return logfile;
 }

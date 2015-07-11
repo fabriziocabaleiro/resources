@@ -63,9 +63,8 @@ int mf_collector(ri *head)
                 {
                     if(it->status == RI_RUNNING)
                     {
-                        log_write_msg(head->gc->log, "Closing process type %s "
-                                      "with label %s for timeout",
-                                      head->type, head->label);
+                        log_write_msg("Closing process type %s with label %s "
+                                      "for timeout", head->type, head->label);
                         /* TODO: close file pointer ? */
                         it->status = RI_DONE;
                     }
