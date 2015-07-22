@@ -44,9 +44,6 @@ static int rf_get_cpu(ri *node, char *data);
 /* Net command */
 static int rf_cmd_net(ri *node);
 
-/* Net data collector */
-static int rf_get_net(ri *node, char *data);
-
 /* Disk command */
 static int rf_cmd_disk(ri *node);
 
@@ -89,6 +86,13 @@ static int rf_cmd_ps(ri *node);
 /* PS data collector */
 static int rf_get_ps(ri *node, char *data);
 
+static int rf_get_dummy(ri *node, char *data)
+{
+    log_write_msg("Error: get function should not be called for %s (%s)",
+                  node->type, node->label);
+    return 0;
+}
+
 static void rf_log_generic(ri *node, const char *func, int line)
 {
     log_write_msg("In function %s, line %d, resources type %s with label %s had"
@@ -115,7 +119,7 @@ void assign_func(ri *head)
         else if(!strcmp(head->type, "net"))
         {
             head->exec_cmd = rf_cmd_net;
-            head->get_data = rf_get_net;
+            head->get_data = rf_get_dummy;
         }
         else if(!strcmp(head->type, "disk"))
         {
@@ -210,7 +214,10 @@ static int rf_get_common_print(char *data, ri *node, char *fmt, ...)
         ret = -1;
     }
     if(pclose(node->pf))
+    {
         rf_log_generic(node, __func__, __LINE__);
+    }
+    node->pf = NULL;
     va_end(va);
     return ret;
 }
@@ -233,7 +240,6 @@ static int rf_get_cpu(ri *node, char *data)
 
 static int rf_cmd_net(ri *node)
 {
-    int fd[2];
     FILE *pf;
     long long int in, out;
     char fname[45];
@@ -262,32 +268,9 @@ static int rf_cmd_net(ri *node)
         return -1;
     }
     fclose(pf);
-    if(pipe(fd) != 0)
-    {
-        printf("rf_cmd_net pipe error: %s\n", strerror(errno));
-        return -1;
-    }
-    snprintf(data, 30, "%Ld %Ld", in, out);
-    write(fd[1], data, 30);
-    close(fd[1]);
-    node->fd = fd[0];
-    node->pf = fdopen(node->fd, "r");
+    snprintf(data, 40, ":%Ld:%Ld", in, out);
+    rrd_update(node, data);
     return 0;
-}
-
-static int rf_get_net(ri *node, char *data)
-{
-    int ret = 0;
-    long long int in, out;
-    if(fscanf(node->pf, "%Ld %Ld", &in, &out) != 2)
-    {
-        log_write_msg("Error rf_get_cpu %s: %s", node->label, strerror(errno));
-        ret = -1;
-    }
-    else
-        snprintf(data, 40, ":%Ld:%Ld", in, out);
-    pclose(node->pf);
-    return ret;
 }
 
 static int rf_cmd_disk(ri *node)
@@ -309,6 +292,7 @@ static int rf_get_disk(ri *node, char *data)
     else
         snprintf(data, 40, ":%Ld:%Ld", total, used);
     pclose(node->pf);
+    node->pf = NULL;
     return ret;
 }
 
@@ -331,6 +315,7 @@ static int rf_get_uptime(ri *node, char *data)
     else
         snprintf(data, 40, ":%d:%.3f:%.3f:%.3f", users, l1, l5, l15);
     pclose(node->pf);
+    node->pf = NULL;
     return ret;
 }
 
@@ -352,6 +337,7 @@ static int rf_get_mem(ri *node, char *data)
     else
         snprintf(data, 40, ":%d:%d:%d:%d", mtotal, mfree, buffer, cached);
     pclose(node->pf);
+    node->pf = NULL;
     return ret;
 }
 
@@ -373,6 +359,7 @@ static int rf_get_swap(ri *node, char *data)
     else
         snprintf(data, 40, ":%d:%d", mtotal, mfree);
     pclose(node->pf);
+    node->pf = NULL;
     return ret;
 }
 
@@ -395,6 +382,7 @@ static int rf_get_all_users(ri *node, char *data)
     else
         snprintf(data, 40, ":%d", users);
     pclose(node->pf);
+    node->pf = NULL;
     return ret;
 }
 
@@ -417,6 +405,7 @@ static int rf_get_current_users(ri *node, char *data)
     else
         snprintf(data, 40, ":%d", users);
     pclose(node->pf);
+    node->pf = NULL;
     return ret;
 }
 

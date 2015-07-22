@@ -46,6 +46,8 @@ ri* ri_new()
     new->next     = NULL;
     new->exec_cmd = NULL;
     new->get_data = NULL;
+    new->pf       = NULL;
+    new->fd       = RI_UNUSED_FD;
     new->status   = RI_BEGIN;
     return new;
 }

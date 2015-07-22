@@ -42,6 +42,7 @@ along with Resources; see the file COPYING.  If not, see
 #include "resfunctions.h"
 #include "rrdtool.h"
 #include "args.h"
+#include "log.h"
 
 /**
  * \brief Collect resources data and write to rrd database
@@ -57,6 +58,7 @@ int mf_graph(ri *head, args *arg);
 
 /**
  * \brief Execute the commands to collect data from each resource
+ * \return Highest file descriptor plus 1, in order to be used with pselect.
  */
 int mf_exec_cmd(fd_set *readfds, ri *head);
 

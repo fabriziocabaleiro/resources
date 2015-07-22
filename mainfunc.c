@@ -64,8 +64,12 @@ int mf_collector(ri *head)
                     if(it->status == RI_RUNNING)
                     {
                         log_write_msg("Closing process type %s with label %s "
-                                      "for timeout", head->type, head->label);
-                        /* TODO: close file pointer ? */
+                                      "for timeout", it->type, it->label);
+                        if(it->pf)
+                        {
+                            pclose(it->pf);
+                            it->pf = NULL;
+                        }
                         it->status = RI_DONE;
                     }
                 }
@@ -90,6 +94,8 @@ int mf_collector(ri *head)
             {
                 for(it = head; it != NULL; it = it->next)
                 {
+                    if(it->fd == RI_UNUSED_FD)
+                        continue;
                     if(FD_ISSET(it->fd, &rfdscpy))
                     {
                         FD_CLR(it->fd, &readfds);
@@ -147,8 +153,8 @@ void mf_sleep_next_time(time_t st)
 
 int mf_exec_cmd(fd_set *readfds, ri *head)
 {
-    int nfds = 0;
-    ri *it;
+    int hfd = 0; /* highest file descriptor */
+    ri *it; /* TODO: not needed ? rm */
     FD_ZERO(readfds);
     for(it = head; it != NULL; it = it->next)
     {
@@ -156,14 +162,14 @@ int mf_exec_cmd(fd_set *readfds, ri *head)
             continue;
         /* Add to the select read file descriptor only the descriptors that
          * were correctly opened (returned different from -1 */
-        if(it->exec_cmd(it) == 0) 
+        if(it->exec_cmd(it) == 0 && it->fd != RI_UNUSED_FD) 
         {
             FD_SET(it->fd, readfds);
-            nfds = nfds < it->fd ? it->fd : nfds;
+            hfd = hfd < it->fd ? it->fd : hfd;
             it->status = RI_RUNNING;
         }
     }
-    return nfds + 1;
+    return hfd + 1;
 }
 
 #ifndef VERSION

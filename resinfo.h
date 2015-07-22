@@ -39,6 +39,10 @@ along with Resources; see the file COPYING.  If not, see
 
 #define RES_DONE 1
 
+/* Some data is collected without the need of popen, then the file descriptor is
+ * not used. */
+#define RI_UNUSED_FD -2
+
 /** 
  * \struct globalconf 
  * \brief  Global configuration struct 

@@ -33,19 +33,19 @@ objs/resweb.o: resweb.c resinfo.h conffile.h log.h
 objs/main.o: main.c resinfo.h conffile.h args.h log.h mainfunc.h
 	$(CC) $(CFLAGS) $< -o $@
 
-objs/mainfunc.o: mainfunc.c rrdtool.h resinfo.h conffile.h resfunctions.h args.h log.h 
+objs/mainfunc.o: mainfunc.c resinfo.h conffile.h resfunctions.h rrdtool.h args.h log.h 
 	$(CC) $(CFLAGS) -DVERSION=\"$(VERSION)\" $< -o $@
 
 objs/resinfo.o: resinfo.c resinfo.h args.h
 	$(CC) $(CFLAGS) $< -o $@
 
-objs/resfunctions.o: resfunctions.c resfunctions.h resinfo.h 
+objs/resfunctions.o: resfunctions.c resfunctions.h resinfo.h log.h
 	$(CC) $(CFLAGS) $< -o $@
 
 objs/conffile.o: conffile.c conffile.h resinfo.h
 	$(CC) $(CFLAGS) $< -o $@
 
-objs/rrdtool.o: rrdtool.c rrdtool.h 
+objs/rrdtool.o: rrdtool.c rrdtool.h resinfo.h args.h log.h
 	$(CC) $(CFLAGS) $< -o $@
 
 objs/args.o: args.c args.h log.h
