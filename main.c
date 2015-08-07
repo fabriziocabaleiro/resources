@@ -42,7 +42,7 @@ int main(int argc, char** argv)
     args_get(argc, argv, &arg);
     head = arg.conffile ? read_conf_file(arg.conffile) :
                           read_conf_file("config.conf");
-    if(head && !log_get_file())
+    if(head && *log_get_file() == '\0')
         log_set_file(head->gc->log);
     if(head)
         head->gc->arg = &arg;
@@ -62,12 +62,15 @@ int main(int argc, char** argv)
     if(arg.graph)
         mf_graph(head, &arg);
     if(arg.collect)
+    {
+        mf_set_signal_handle();
         mf_collector(head);
+    }
 
     if(head)
         gconf_free(head->gc);
     ri_free(head);
-    printf("Thanks for using resources\n");
+    log_write_msg("Thanks for using resources");
     return (EXIT_SUCCESS);
 }
 

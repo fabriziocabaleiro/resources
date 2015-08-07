@@ -31,7 +31,8 @@ along with Resources; see the file COPYING.  If not, see
 
 #include "log.h"
 
-static char *logfile;
+#define MAX_LENGTH_LOG_FILENAME 200
+static char logfile[MAX_LENGTH_LOG_FILENAME] = {'\0'};
 
 static void log_write_time(FILE *pf)
 {
@@ -47,7 +48,10 @@ void log_write_msg(char *fmt, ...)
     va_list arg;
     va_start(arg, fmt);
     if((pf = fopen(logfile, "a")) == NULL)
+    {
+        printf("Error opening log file '%s': %s\n", logfile, strerror(errno));
         return;
+    }
     log_write_time(pf);
     vfprintf(pf, fmt, arg);
     fprintf(pf, "\n");
@@ -57,7 +61,12 @@ void log_write_msg(char *fmt, ...)
 
 int log_set_file(char *file)
 {
-    logfile = file;
+    if(strlen(file) >= MAX_LENGTH_LOG_FILENAME)
+    {
+        printf("Error filename for log file is too long\n");
+        return -1;
+    }
+    strcpy(logfile, file);
     return 0;
 }
 

@@ -31,6 +31,10 @@ along with Resources; see the file COPYING.  If not, see
 
 #include "mainfunc.h"
 
+/* In collect mode, run until signal changes the value of stop_running */
+static int stop_running = 0;
+
+
 int mf_collector(ri *head)
 {
     ri *it;
@@ -43,15 +47,15 @@ int mf_collector(ri *head)
     int psr;                  /* PSelect Return */
     time_t st;                /* Starting time  */
     time_t ct;                /* Current time   */
-    
+
     timeout.tv_nsec = 0;
     sigemptyset(&sset);
-    
-    for(;;)
+
+    while(stop_running == 0)
     {
         st = time(NULL);
         nfds = mf_exec_cmd(&readfds, head);
-        
+
         while(!ri_done(head))
         {
             ct = time(NULL);
@@ -204,8 +208,32 @@ int mf_daemonize()
     else /* parent */
     {
         printf("Process has fork with pid %d\n", pid);
-        _exit(EXIT_SUCCESS);
+        exit(EXIT_SUCCESS);
     }
     return pid;
+}
+
+int mf_set_signal_handle()
+{
+    if(signal(SIGINT, mf_signal_handle)  == SIG_ERR ||
+       signal(SIGQUIT, mf_signal_handle) == SIG_ERR ||
+       signal(SIGSEGV, mf_signal_handle) == SIG_ERR ||
+       signal(SIGTERM, mf_signal_handle) == SIG_ERR) {
+        printf("Error setting signal handle\n");
+        return -1;
+    }
+    return 0;
+}
+
+void mf_signal_handle(int sig)
+{
+    char *mail_cmd;
+    log_write_msg("Signal %d received, starting to close everything", sig);
+    /* using alloca to avoid reserving static memory for this case */
+    mail_cmd = (char*)alloca(200 * sizeof(int));
+    snprintf(mail_cmd, 200, "mailx %s <<< \"resources was killed by signal %d\""
+             , getenv("USER"), sig);
+    system(mail_cmd);
+    stop_running = 1;
 }
 

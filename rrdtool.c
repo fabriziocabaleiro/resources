@@ -24,7 +24,7 @@ along with Resources; see the file COPYING.  If not, see
 /** 
  * \file   rrdtool.c
  * \author Fabrizio Cabaleiro
- * \brief  
+ * \brief  Store the data using RRDTool
  * \date July 21, 2013, 10:13 PM
  *
  */
@@ -46,17 +46,20 @@ int rrd_exits(ri *node)
 
 void rrd_create(ri *node)
 {
-    char cmd[400];
-    char cmd1[100];
-    char cmd2[200];
-    char cmd3[100];
+    int len = 400, len1 = 100, len2 = 200, len3 = 100;
+    /* using alloca to reduce static memory as possible */
+    char *cmd  = (char*)alloca(len  * sizeof(char));
+    char *cmd1 = (char*)alloca(len1 * sizeof(char));
+    char *cmd2 = (char*)alloca(len2 * sizeof(char));
+    char *cmd3 = (char*)alloca(len3 * sizeof(char));
     char *rpath = node->gc->arg->rpath ? node->gc->arg->rpath :
                                          node->gc->rpath;
 
-    snprintf(cmd1, 100, "rrdtool create %s/%s.rrd --step 30 ", rpath, node->rname);
+    /* TODO: check if any of the cmd* was filled entirely */
+    snprintf(cmd1, len1, "rrdtool create %s/%s.rrd --step 30 ", rpath, node->rname);
     if(!strcmp(node->type, "cpu"))
     {
-        snprintf(cmd2, 200,
+        snprintf(cmd2, len2,
                 "DS:user:GAUGE:60:0:100 "
                 "DS:nice:GAUGE:60:0:100 "
                 "DS:system:GAUGE:60:0:100 "
@@ -66,19 +69,19 @@ void rrd_create(ri *node)
     }
     else if(!strcmp(node->type, "net"))
     {
-        snprintf(cmd2, 200,
+        snprintf(cmd2, len2,
                 "DS:in:COUNTER:60:0:U "
                 "DS:out:COUNTER:60:0:U ");
     }
     else if(!strcmp(node->type, "disk"))
     {
-        snprintf(cmd2, 200,
+        snprintf(cmd2, len2,
                 "DS:total:GAUGE:60:0:U "
                 "DS:used:GAUGE:60:0:U ");
     }
     else if(!strcmp(node->type, "uptime"))
     {
-        snprintf(cmd2, 200,
+        snprintf(cmd2, len2,
                 "DS:users:GAUGE:60:0:U "
                 "DS:l1:GAUGE:60:0:U "
                 "DS:l5:GAUGE:60:0:U "
@@ -86,7 +89,7 @@ void rrd_create(ri *node)
     }
     else if(!strcmp(node->type, "mem"))
     {
-        snprintf(cmd2, 200,
+        snprintf(cmd2, len2,
                 "DS:total:GAUGE:60:0:U "
                 "DS:free:GAUGE:60:0:U "
                 "DS:buffer:GAUGE:60:0:U "
@@ -94,24 +97,24 @@ void rrd_create(ri *node)
     }
     else if(!strcmp(node->type, "swap"))
     {
-        snprintf(cmd2, 200,
+        snprintf(cmd2, len2,
                 "DS:total:GAUGE:60:0:U "
                 "DS:free:GAUGE:60:0:U ");
     }
     else if(!strcmp(node->type, "ps"))
     {
-        snprintf(cmd2, 200,
+        snprintf(cmd2, len2,
                 "DS:cpu:GAUGE:60:0:2000 "
                 "DS:mem:GAUGE:60:0:2000 ");
     }
     else if(!strcmp(node->type, "all_users"))
     {
-        snprintf(cmd2, 200,
+        snprintf(cmd2, len2,
                 "DS:users:GAUGE:60:0:U ");
     }
     else if(!strcmp(node->type, "current_users"))
     {
-        snprintf(cmd2, 200,
+        snprintf(cmd2, len2,
                 "DS:users:GAUGE:60:0:U ");
     }
     else
@@ -119,26 +122,27 @@ void rrd_create(ri *node)
         log_write_msg("Error rrd_create %s: %s", node->label, strerror(errno));
         return;
     }
-    snprintf(cmd3, 100, 
+    snprintf(cmd3, len3,
             "RRA:AVERAGE:0.5:1:20160 "      /* Single sample for one week */
             "RRA:AVERAGE:0.5:20:52560 "     /* Average of ten minutes, data for one year */
             "RRA:AVERAGE:0.5:120:43800 ");  /* Average of one hour, for 5 years */     
     
-    snprintf(cmd, 400, "%s %s %s ", cmd1, cmd2,cmd3);
+    snprintf(cmd, len, "%s %s %s ", cmd1, cmd2,cmd3);
     system(cmd);
 }
 
 void rrd_graph(ri *node, const args *arg)
 {
-    char cmd[900];
-    char cmd2[700];
+    int len = 2000, len2 = 1000;
+    char cmd  = (char*)alloca(len  * sizeof(char));
+    char cmd2 = (char*)alloca(len2 * sizeof(char));
     char *rpath = node->gc->arg->rpath ? node->gc->arg->rpath :
                                          node->gc->rpath;
     char *gpath = node->gc->arg->gpath ? node->gc->arg->gpath :
                                          node->gc->gpath;
     if(!strcmp(node->type, "cpu"))
     {
-        snprintf(cmd2, 700, 
+        snprintf(cmd2, len2, 
                 "DEF:user=%1$s/%2$s.rrd:user:AVERAGE "
                 "DEF:nice=%1$s/%2$s.rrd:nice:AVERAGE "
                 "DEF:system=%1$s/%2$s.rrd:system:AVERAGE "
@@ -154,7 +158,7 @@ void rrd_graph(ri *node, const args *arg)
     }
     else if(!strcmp(node->type, "disk"))
     {
-        snprintf(cmd2, 700,
+        snprintf(cmd2, len2,
                 "-b 1024 "
                 "DEF:total=%1$s/%2$s.rrd:total:AVERAGE "
                 "DEF:used=%1$s/%2$s.rrd:used:AVERAGE "
@@ -165,7 +169,7 @@ void rrd_graph(ri *node, const args *arg)
     }
     else if(!strcmp(node->type, "net"))
     {
-        snprintf(cmd2, 700,
+        snprintf(cmd2, len2,
                 "DEF:in=%1$s/%2$s.rrd:in:AVERAGE "
                 "DEF:out=%1$s/%2$s.rrd:out:AVERAGE "
                 "LINE2:in#00ff00:'Incomming Bytes/s' "
@@ -173,7 +177,7 @@ void rrd_graph(ri *node, const args *arg)
     }
     else if(!strcmp(node->type, "uptime"))
     {
-        snprintf(cmd2, 700,
+        snprintf(cmd2, len2,
                 "DEF:users=%1$s/%2$s.rrd:users:AVERAGE "
                 "DEF:l1=%1$s/%2$s.rrd:l1:AVERAGE "
                 "DEF:l5=%1$s/%2$s.rrd:l5:AVERAGE "
@@ -185,7 +189,7 @@ void rrd_graph(ri *node, const args *arg)
     }
     else if(!strcmp(node->type, "mem"))
     {
-        snprintf(cmd2, 700,
+        snprintf(cmd2, len2,
                 "DEF:total=%1$s/%2$s.rrd:total:AVERAGE "
                 "DEF:free=%1$s/%2$s.rrd:free:AVERAGE "
                 "DEF:buffer=%1$s/%2$s.rrd:buffer:AVERAGE "
@@ -201,7 +205,7 @@ void rrd_graph(ri *node, const args *arg)
     }
     else if(!strcmp(node->type, "swap"))
     {
-        snprintf(cmd2, 700,
+        snprintf(cmd2, len2,
                 "DEF:total=%1$s/%2$s.rrd:total:AVERAGE "
                 "DEF:free=%1$s/%2$s.rrd:free:AVERAGE "
                 "CDEF:used=total,free,-,1024,* "
@@ -211,7 +215,7 @@ void rrd_graph(ri *node, const args *arg)
     }
     else if(!strcmp(node->type, "ps"))
     {
-        snprintf(cmd2, 700,
+        snprintf(cmd2, len2,
                 "DEF:cpu=%1$s/%2$s.rrd:cpu:AVERAGE "
                 "DEF:mem=%1$s/%2$s.rrd:mem:AVERAGE "
                 "LINE2:cpu#ff0000:'CPU %%' "
@@ -219,13 +223,13 @@ void rrd_graph(ri *node, const args *arg)
     }
     else if(!strcmp(node->type, "all_users"))
     {
-        snprintf(cmd2, 700,
+        snprintf(cmd2, len2,
                 "DEF:users=%1$s/%2$s.rrd:users:AVERAGE "
                 "LINE2:users#00ff00:'All Users' ", rpath, node->rname);
     }
     else if(!strcmp(node->type, "current_users"))
     {
-        snprintf(cmd2, 700,
+        snprintf(cmd2, len2,
                 "DEF:users=%1$s/%2$s.rrd:users:AVERAGE "
                 "LINE2:users#00ff00:'Current Users' ", rpath, node->rname);
     }
@@ -234,7 +238,7 @@ void rrd_graph(ri *node, const args *arg)
         log_write_msg("Error trying to graph type %s that didn't match any", node->type);
         return;
     }
-    snprintf(cmd, 900, "rrdtool graph %s/%s.png -l 0 -t '%s' -s -3600 -e -30 "
+    snprintf(cmd, len, "rrdtool graph %s/%s.png -l 0 -t '%s' -s -3600 -e -30 "
             "-w 550 -h 300 %s %s", gpath, node->gname, node->label, 
             arg->rrdopt == NULL? "": arg->rrdopt, cmd2);
     system(cmd);

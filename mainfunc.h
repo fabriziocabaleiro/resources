@@ -74,8 +74,22 @@ void mf_print_version();
 
 /**
  * \brief Daemonize the process
+ * \return Zero on success, -1 upon error.
  */
 int mf_daemonize();
+
+/**
+ * \brief Set signal handle for SIGINT, SIGQUIT, SIGSEGV and SIGTERM
+ * \return Zero on success.
+ */
+int mf_set_signal_handle();
+
+/**
+ * \brief Signal handle for SIGINT, SIGQUIT, SIGSEGV and SIGTERM.
+ * Handle signal and send an email to the person that stated the process
+ * letting him know that it was terminated with which signal.
+ */
+void mf_signal_handle(int sig);
 
 #endif
 
