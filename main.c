@@ -40,6 +40,16 @@ int main(int argc, char** argv)
     args arg;
     
     args_get(argc, argv, &arg);
+    if(arg.help)
+    {
+        args_help();
+        return EXIT_SUCCESS;
+    }
+    if(arg.version)
+    {
+        mf_print_version();
+        return EXIT_SUCCESS;
+    }
     head = arg.conffile ? read_conf_file(arg.conffile) :
                           read_conf_file("config.conf");
     if(head && *log_get_file() == '\0')
@@ -57,8 +67,6 @@ int main(int argc, char** argv)
         if(head)
             gconf_print(head->gc);
     }
-    if(arg.version)
-        mf_print_version();
     if(arg.graph)
         mf_graph(head, &arg);
     if(arg.collect)

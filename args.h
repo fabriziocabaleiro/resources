@@ -59,6 +59,7 @@ typedef struct argument_struct
     unsigned int version:1; /**< Tell the program to print the current version
                                  and then exit */
     unsigned int daemon:1;  /**< Run the program in daemon mode */
+    unsigned int help:1;    /**< Print Usage help */
     char *res;     /**< The type of resources to graph in GRAPH mode  */
     char *rrdopt;  /**< Additional options for the rrdtool command */
     char *gpath;   /**< Prefer given graph path instead of the one at the
@@ -83,6 +84,11 @@ void args_init(args *arg);
  * @return The amount of arguments that were correctly read
  */
 int args_get(int argc, char **argv, args *arg);
+
+/**
+ * @brief Print help
+ */
+void args_help();
 
 /**
  * @brief Prints the content of the arguments structure

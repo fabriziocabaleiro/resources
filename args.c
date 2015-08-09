@@ -38,6 +38,7 @@ void args_init(args *arg)
     arg->test     = 0;
     arg->version  = 0;
     arg->daemon   = 0;
+    arg->help     = 0;
     arg->res      = NULL;
     arg->rrdopt   = NULL;
     arg->rpath    = NULL;
@@ -160,8 +161,42 @@ int args_get(int argc, char **argv, args *arg)
             log_set_file(*(argv + i + 1));
             ret++;
         }
+        else if(!strcmp(*(argv + i), "-h") || !strcmp(*(argv + i), "--help"))
+        {
+            arg->help = 1;
+            ret++;
+        }
     }
     return ret;
+}
+
+void args_help()
+{
+    printf("USAGE: resources [OPTIONS]\n"
+           "OPTIONS:\n"
+           "    -c|--collect\n"
+           "        Run resources on collect mode\n"
+           "    -g|--graph\n"
+           "        Generate graphs\n"
+           "    -t|--test\n"
+           "        Run resources on test mode\n"
+           "    -d|--daemon\n"
+           "        Run resources as a deamon\n"
+           "    -r|--rrdopt\n"
+           "        Give specific options to rrdtool when generating graphs\n"
+           "    -v|--version\n"
+           "        Print version\n"
+           "    -gp|--gpath\n"
+           "        Specify a path for the graphs (png) files\n"
+           "        Higher precedence than configuration file\n"
+           "    -rp|--rpath\n"
+           "        Specify a path for the rrd files\n"
+           "        Higher precedence than configuration file\n"
+           "    -f|--conffile\n"
+           "        Specify the configuration file location with name, default config.conf\n"
+           "    -l|--log\n"
+           "        Specify path and name of log file\n"
+           "        Higher precedence than configuration file\n");
 }
 
 void args_print(args *arg)

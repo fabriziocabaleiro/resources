@@ -134,8 +134,8 @@ void rrd_create(ri *node)
 void rrd_graph(ri *node, const args *arg)
 {
     int len = 2000, len2 = 1000;
-    char cmd  = (char*)alloca(len  * sizeof(char));
-    char cmd2 = (char*)alloca(len2 * sizeof(char));
+    char *cmd   = (char*)alloca(len  * sizeof(char));
+    char *cmd2  = (char*)alloca(len2 * sizeof(char));
     char *rpath = node->gc->arg->rpath ? node->gc->arg->rpath :
                                          node->gc->rpath;
     char *gpath = node->gc->arg->gpath ? node->gc->arg->gpath :

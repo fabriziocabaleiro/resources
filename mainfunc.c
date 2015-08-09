@@ -43,7 +43,7 @@ int mf_collector(ri *head)
     struct timespec timeout;
     sigset_t sset;
     char data[40];
-    int nfds;
+    int nfds;                 /* highest file descriptor plus 1 */
     int psr;                  /* PSelect Return */
     time_t st;                /* Starting time  */
     time_t ct;                /* Current time   */
@@ -215,10 +215,11 @@ int mf_daemonize()
 
 int mf_set_signal_handle()
 {
-    if(signal(SIGINT, mf_signal_handle)  == SIG_ERR ||
+    if(signal(SIGINT,  mf_signal_handle) == SIG_ERR ||
        signal(SIGQUIT, mf_signal_handle) == SIG_ERR ||
        signal(SIGSEGV, mf_signal_handle) == SIG_ERR ||
-       signal(SIGTERM, mf_signal_handle) == SIG_ERR) {
+       signal(SIGTERM, mf_signal_handle) == SIG_ERR ||
+       signal(SIGHUP,  SIG_IGN)          == SIG_ERR ) {
         printf("Error setting signal handle\n");
         return -1;
     }
