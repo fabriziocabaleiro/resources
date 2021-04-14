@@ -1,59 +1,59 @@
-OBJ= \
-	objs/main.o \
-	objs/resinfo.o \
-	objs/conffile.o \
-	objs/resfunctions.o \
-	objs/rrdtool.o \
-	objs/args.o \
-	objs/log.o \
-	objs/mainfunc.o
+DEPDIR  = Deps
+OBJDIR  = Objs
+TARGET  = resources resweb
 
-WOBJ= \
-	objs/resweb.o \
-	objs/resinfo.o \
-	objs/conffile.o \
-	objs/log.o
+OBJ =	main.o \
+	resinfo.o \
+	conffile.o \
+	resfunctions.o \
+	rrdtool.o \
+	args.o \
+	log.o \
+	mainfunc.o
+
+WOBJ =	resweb.o \
+	resinfo.o \
+	conffile.o \
+	log.o
 
 CC     = gcc
 FLAGS  = -Wall -g
 CFLAGS = $(FLAGS) -c
 VERSION=$(shell git tag|tail -n1)
 
-all: resources resweb
+# GCC flags for dependencies auto generation
+DEPOPTS = -MP -MD -MF ${DEPDIR}/$(notdir $@).d
 
-resources: $(OBJ)
-	$(CC) $(FLAGS) $^ -o $@
+all: ${TARGET}
 
-resweb: $(WOBJ)
-	$(CC) $(FLAGS) $^ -o $@
+resources: $(addprefix ${OBJDIR}/, ${OBJ})
+	$(CC) ${FLAGS} $^ -o $@
 
-objs/resweb.o: resweb.c resinfo.h conffile.h log.h
-	$(CC) $(CFLAGS) $< -o $@
+resweb: $(addprefix ${OBJDIR}/, ${WOBJ})
+	$(CC) ${FLAGS} $^ -o $@
 
-objs/main.o: main.c resinfo.h conffile.h args.h log.h mainfunc.h
-	$(CC) $(CFLAGS) $< -o $@
+cscope:
+	$(eval FILES := $(shell sed -n '/:$$/s/:$$//p' ${DEPDIR}/* | sort -u) \
+		${OBJ:.o=.c} ${WOBJ:.o=.c})
+	cscope -k -b -q ${FILES}
 
-objs/mainfunc.o: mainfunc.c resinfo.h conffile.h resfunctions.h rrdtool.h args.h log.h 
-	$(CC) $(CFLAGS) -DVERSION=\"$(VERSION)\" $< -o $@
+ctags:
+	$(eval FILES := $(shell sed -n '/:$$/s/:$$//p' ${DEPDIR}/* | sort -u) \
+		${OBJ:.o=.c} ${WOBJ:.o=.c})
+	ctags ${FILES}
 
-objs/resinfo.o: resinfo.c resinfo.h args.h
-	$(CC) $(CFLAGS) $< -o $@
+# Implicit rules with pattern rules
+# On the first go, without dependencies in ./${DEPDIR}, this implicit rule will apply
+# and dependency file will be generated.
+${OBJDIR}/%.o: %.c makefile | ${DEPDIR} ${OBJDIR}
+	$(CC) $< ${DEPOPTS} -DVERSION=\"$(VERSION)\" ${CFLAGS} -c -o $@
 
-objs/resfunctions.o: resfunctions.c resfunctions.h resinfo.h log.h
-	$(CC) $(CFLAGS) $< -o $@
-
-objs/conffile.o: conffile.c conffile.h resinfo.h
-	$(CC) $(CFLAGS) $< -o $@
-
-objs/rrdtool.o: rrdtool.c rrdtool.h resinfo.h args.h log.h
-	$(CC) $(CFLAGS) $< -o $@
-
-objs/args.o: args.c args.h log.h
-	$(CC) $(CFLAGS) $< -o $@
-
-objs/log.o: log.c log.h 
-	$(CC) $(CFLAGS) $< -o $@
+# Generate directory if doesn't exists
+${OBJDIR} ${DEPDIR}:
+	test -d $@ || mkdir $@
 
 clean:
-	rm objs/*.o
-	rm resources resweb
+	rm -rf ${OBJDIR} ${DEPDIR} ${TARGET}
+
+# Include automatic dependencies
+-include $(wildcard ${DEPDIR}/*)
