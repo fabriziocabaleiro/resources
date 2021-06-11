@@ -53,7 +53,7 @@ ${OBJDIR} ${DEPDIR}:
 	test -d $@ || mkdir $@
 
 clean:
-	rm -rf ${OBJDIR} ${DEPDIR} ${TARGET}
+	rm -rf ${OBJDIR} ${DEPDIR} ${TARGET} cscope.*
 
 # Include automatic dependencies
 -include $(wildcard ${DEPDIR}/*)

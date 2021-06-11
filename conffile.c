@@ -87,6 +87,7 @@ ri* read_conf_file(char *cfn)
         else if(tp == CONFIGURATION)
             gconf_fill(gc, line);
     }
+    gconf_check(gc);
     ri_add(&head, buf);
     for(buf = head; buf != NULL; buf = buf->next)
         buf->gc = gc;

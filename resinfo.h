@@ -173,6 +173,13 @@ void gconf_free(gconf*);
 void gconf_fill(gconf *gc, char *line);
 
 /**
+ * \brief Check gconf fields after reading configuration file
+ * \param gc An instance of gconf structure
+ * \return void
+ */
+void gconf_check(gconf *gc);
+
+/**
  * \brief Print all the attributes of the gconf structure
  * \param gc A gconf structure pointer
  * \return void

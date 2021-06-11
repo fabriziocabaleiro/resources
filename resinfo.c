@@ -177,9 +177,42 @@ void gconf_fill(gconf *gc, char *line)
         free(buf);
 }
 
+void gconf_check(gconf *gc)
+{
+    struct stat file_info;
+
+    /* Check if not NULL */
+#define GC_CHECK_NOT_NULL(field)                                    \
+    if(!gc->field)                                                  \
+    {                                                               \
+        printf("Error: Configuration -> " #field " not defined\n"); \
+        exit(EXIT_FAILURE);                                         \
+    }
+    GC_CHECK_NOT_NULL(rpath);
+    GC_CHECK_NOT_NULL(gpath);
+    GC_CHECK_NOT_NULL(wgpath);
+    GC_CHECK_NOT_NULL(log);
+
+#define GC_CHECK_IS_DIR(field)                                                 \
+    if(stat(gc->field, &file_info))                                            \
+    {                                                                          \
+        printf("Error: configuration -> " #field ": %s\n", strerror(errno));   \
+        exit(EXIT_FAILURE);                                                    \
+    }                                                                          \
+    if((file_info.st_mode & S_IFDIR) != S_IFDIR)                               \
+    {                                                                          \
+        printf("Error: Given " #field " is not a directory\n");                \
+        exit(EXIT_FAILURE);                                                    \
+    }
+
+    GC_CHECK_IS_DIR(rpath);
+    GC_CHECK_IS_DIR(gpath);
+    GC_CHECK_IS_DIR(wgpath);
+}
+
 void gconf_print(gconf *gc)
 {
-    char sfmt[] = "%-6s%s\n";
+    char sfmt[] = "%-12s%s\n";
     printf(sfmt, "rpath",  gc->rpath);
     printf(sfmt, "gpath",  gc->gpath);
     printf(sfmt, "wgpath", gc->wgpath);
